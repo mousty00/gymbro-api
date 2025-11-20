@@ -1,0 +1,27 @@
+extend type Query {
+    likes(page: Int, size: Int): LikeConnection
+    like(id: UUID): LikeDTO
+}
+
+extend type Mutation {
+    deleteLike(id: UUID): MessageResponse
+    createLike(request: LikeInput): LikeDTO
+}
+
+type LikeDTO {
+    id: UUID
+    postId: UUID
+    user: UserDTO
+    createdAt: String
+}
+
+input LikeInput {
+    postId: UUID
+    userId: UUID
+}
+
+type LikeConnection implements Connection{
+    pageInfo: PageInfo!
+    totalCount: Int!
+    result: [LikeDTO]
+}

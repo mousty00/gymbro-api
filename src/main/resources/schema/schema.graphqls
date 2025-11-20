@@ -1,0 +1,17 @@
+scalar UUID
+scalar MultiPartFile
+
+type Query {
+    _empty: String
+}
+
+type Mutation {
+    _empty: String
+}
+
+
+
+
+
+
+

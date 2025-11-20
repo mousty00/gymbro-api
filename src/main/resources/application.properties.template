@@ -1,0 +1,46 @@
+spring.application.name=
+server.servlet.context-path=/api
+
+# database
+spring.datasource.url=
+spring.datasource.username=
+spring.datasource.password=
+spring.jpa.show-sql=
+
+# graphiql
+spring.graphql.graphiql.enabled=true
+spring.graphql.graphiql.path=/graphiql
+
+# jackson
+spring.jackson.serialization.write-dates-as-timestamps=false
+spring.jackson.date-format=yyyy-MM-dd
+spring.jackson.time-zone=UTC
+
+# mail
+spring.mail.host=
+spring.mail.port=
+spring.mail.username=
+spring.mail.password=
+spring.mail.properties.mail.smtp.auth=
+spring.mail.properties.mail.smtp.starttls.enable=
+spring.mail.properties.mail.smtp.from=
+
+# jwt
+jwt.secret=
+
+# openapi
+springdoc.swagger-ui.path=
+springdoc.api-docs.path=
+springdoc.api-docs.enabled=
+springdoc.swagger-ui.enabled=
+
+# aws
+aws.region=
+aws.secretKey=
+aws.accessKeyId=
+cloud.aws.s3.bucket=
+default.profile.image.key=
+
+# multipart
+spring.servlet.multipart.max-file-size=
+spring.servlet.multipart.max-request-size=

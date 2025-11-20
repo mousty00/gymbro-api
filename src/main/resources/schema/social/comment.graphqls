@@ -1,0 +1,39 @@
+extend type Query {
+    comments(page: Int, size: Int) : CommentConnection
+    comment(id: UUID): CommentDTO
+}
+
+
+extend type Mutation {
+    deleteComment(id: UUID): MessageResponse
+    createComment(request: CommentInput): MessageResponse
+}
+
+type CommentDTO {
+    id: UUID
+    postId: UUID
+    user: UserDTO
+    content: String
+    createdAt: String
+}
+
+input CommentInput {
+    postId: UUID!
+    username: String!
+    content: String!
+    createdAt: String
+}
+
+type SimpleCommentDTO {
+    id: UUID
+    postId: UUID
+    username: String
+    content: String
+    createdAt: String
+}
+
+type CommentConnection implements Connection {
+    pageInfo: PageInfo!
+    totalCount: Int!
+    result: [CommentDTO]
+}

@@ -1,0 +1,31 @@
+extend type Query {
+    friends(page: Int, size: Int): FriendshipConnection
+    friendsPosts: [FriendshipDTO]
+    findFriends(username: String!): [FriendshipDTO]
+    friend(id: UUID!): FriendshipDTO
+}
+
+extend type Mutation {
+    addFriend(friendUsername: String!): MessageResponse
+    acceptFriend(id: UUID!): MessageResponse
+    rejectFriend(id: UUID!): MessageResponse
+    blockFriend(id: UUID!): MessageResponse
+}
+
+type FriendshipConnection implements Connection{
+    totalCount: Int!
+    pageInfo: PageInfo!
+    results: [FriendshipDTO]
+}
+
+type FriendshipDTO {
+    id: UUID
+    user: SimpleUserDTO
+    friend: SimpleUserDTO
+    status: String
+    createdAt: String
+}
+
+input FriendshipInput {
+    friend: String
+}

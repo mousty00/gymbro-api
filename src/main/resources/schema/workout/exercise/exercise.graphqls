@@ -1,0 +1,48 @@
+extend type Query {
+    exercises(page: Int, size: Int): ExerciseConnection
+    exercise(id: UUID): ExerciseDTO
+}
+
+extend type Mutation {
+    deleteExercise(id: UUID): MessageResponse
+    updateExercise(request: ExerciseInput): MessageResponse
+}
+
+interface ExerciseFields {
+    id: UUID
+    name: String
+    description: String
+    muscleGroup: String
+    isPublic: Boolean
+}
+
+type ExerciseDTO implements ExerciseFields {
+    id: UUID
+    name: String
+    description: String
+    muscleGroup: String
+    isPublic: Boolean
+    createdBy: UserDTO
+    workoutExercises: [WorkoutExerciseDTO]
+}
+
+input ExerciseInput {
+    id: UUID
+    name: String
+    description: String
+    muscleGroup: String
+    isPublic: Boolean
+    createdByUserId: UUID
+}
+
+type ExerciseConnection implements Connection {
+    pageInfo: PageInfo!
+    totalCount: Int!
+    results: [ExerciseDTO]
+}
+
+type ExerciseEntityResponse implements EntityResponse{
+    message: String
+    timestamp: String
+    result: PostDTO
+}

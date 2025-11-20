@@ -1,0 +1,23 @@
+type PageInfo {
+    totalPages: Int!
+    totalElements: Int!
+    currentPage: Int!
+    hasNext: Boolean!
+    hasPrevious: Boolean!
+}
+
+type MessageResponse {
+    message: String,
+    status: String,
+    timestamp: String
+}
+
+interface Connection {
+    pageInfo: PageInfo!
+    totalCount: Int!
+}
+
+interface EntityResponse {
+    message: String
+    timestamp: String
+}

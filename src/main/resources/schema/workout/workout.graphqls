@@ -1,0 +1,50 @@
+extend type Query {
+    workouts: [WorkoutDTO]
+    workout(id: UUID!) : WorkoutDTO
+}
+
+extend type Mutation {
+    deleteWorkout(id: UUID!): MessageResponse
+    updateWorkout(request: WorkoutInput): MessageResponse
+    createWorkout(request: WorkoutInput): EntityResponseWorkout
+}
+
+type WorkoutDTO {
+    id: UUID
+    user: UserDTO
+    name: String
+    description: String
+    isPublic: Boolean
+    dayOfWeek: [Int]
+    startTime: String
+    createdAt: String
+    workoutExercises: [WorkoutExerciseDTO]
+    workoutGroups: [WorkoutGroupDTO]
+    workoutHistories: [WorkoutHistoryDTO]
+}
+
+input WorkoutInput {
+    id: UUID
+    userId: UUID!
+    name: String!
+    description: String
+    isPublic: Boolean!
+    dayOfWeek: [Int]!
+}
+
+type SimpleWorkoutDTO {
+    id: UUID
+    user: SimpleUserDTO
+    name: String
+    description: String
+    isPublic: Boolean
+    dayOfWeek: [Int]
+}
+
+
+
+type EntityResponseWorkout implements EntityResponse {
+    timestamp: String
+    message: String
+    result: WorkoutDTO
+}

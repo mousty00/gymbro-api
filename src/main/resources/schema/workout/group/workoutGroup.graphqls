@@ -1,0 +1,41 @@
+extend type Query {
+    workoutGroups(page: Int, size: Int): WorkoutGroupConnection
+    workoutGroup(id: UUID): WorkoutGroupDTO
+}
+
+extend type Mutation {
+    createWorkoutGroup(request: WorkoutGroupInput): EntityResponseGroupMember
+    deleteWorkoutGroup(id: UUID): MessageResponse
+}
+
+type WorkoutGroupDTO {
+    id: UUID
+    name: String
+    workout: SimpleWorkoutDTO
+    createdBy: SimpleUserDTO
+    scheduledFor: String
+    status: String
+    createdAt: String
+    groupMembers: [GroupMemberDTO]
+}
+
+type WorkoutGroupConnection implements Connection {
+    pageInfo: PageInfo!
+    totalCount: Int!
+    result: WorkoutGroupDTO
+}
+
+type WorkoutGroupEntityResponse implements EntityResponse {
+    timestamp: String
+    message: String
+    result: WorkoutGroupDTO
+}
+
+input WorkoutGroupInput {
+    name: String
+    workoutId: UUID
+    createdById: UUID
+    scheduledFor: String
+    status: String
+    groupMembersIds: [UUID]
+}

@@ -1,0 +1,49 @@
+extend type Query {
+    userPosts(username: String): [PostDTO]
+    post(id: UUID): PostDTO
+}
+
+extend type Mutation {
+    createPost(request: PostAddDTO, imageFile: MultiPartFile): PostEntityResponse
+    deletePost(id: UUID): MessageResponse
+    updatePost(request: PostInput): MessageResponse
+}
+
+# Interface defining common fields
+interface PostFields {
+    id: UUID
+    content: String
+    image: String
+}
+
+# Output type implementing interface
+type PostDTO implements PostFields {
+    id: UUID
+    user: UserDTO
+    content: String
+    image: String
+    createdAt: String
+    updatedAt: String
+    comments: [CommentDTO]
+    likes: [LikeDTO]
+    numLikes: Int
+    numComments: Int
+}
+
+input PostInput {
+    id: UUID
+    userId: UUID
+    content: String
+    image: String
+}
+
+input PostAddDTO {
+    userId: UUID
+    content: String
+}
+
+type PostEntityResponse implements EntityResponse{
+    message: String
+    timestamp: String
+    result: PostDTO
+}

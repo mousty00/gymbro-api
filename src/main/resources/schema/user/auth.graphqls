@@ -1,0 +1,41 @@
+
+extend type Mutation {
+    login(credentials: LoginDTO): LoginResponse
+    signup(credentials: SignupDTO): MessageResponse
+    sendResetOtp(email: String): MessageResponse
+    resetPassword(request: ResetPasswordDTO) : MessageResponse
+    sendVerifyOtp(email: String): MessageResponse
+    verifyOtp(request: OTPRequest): MessageResponse
+}
+
+input SignupDTO {
+    username: String
+    email: String
+    password: String
+    firstName: String
+    lastName: String
+    birthDate: String
+    image: String
+}
+
+type LoginResponse {
+    message: String
+    result: UserDTO
+    token: String
+}
+
+input ResetPasswordDTO {
+    newPassword: String
+    otp: String
+    email: String
+}
+
+input OTPRequest {
+    username: String
+    otp: String
+}
+
+input LoginDTO {
+    username: String
+    password: String
+}

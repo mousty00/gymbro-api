@@ -1,0 +1,33 @@
+extend type Query {
+    users(page: Int, size: Int): UserConnection
+    user(id: UUID): UserDTO
+    searchUser(username: String): [SimpleUserDTO]
+}
+
+extend type Mutation {
+    deleteUser(id: UUID): MessageResponse
+}
+
+type UserConnection implements Connection {
+    pageInfo: PageInfo!
+    totalCount: Int!
+    results: [UserDTO]
+}
+
+type UserDTO {
+    id: UUID
+    username: String
+    email: String
+    firstName: String
+    lastName: String
+    birthDate: String
+    roleName: String
+    image: String
+}
+
+type SimpleUserDTO {
+    id: UUID
+    username: String
+    image: String
+    isAccountVerified: Boolean
+}

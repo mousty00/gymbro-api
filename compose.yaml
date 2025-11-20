@@ -1,0 +1,94 @@
+services:
+
+  spring-app:
+    build: .
+    container_name: gymbro-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://pg-service:5432/gymbro?useSSL=false&serverTimezone=UTC
+    env_file:
+      - app.env
+    depends_on:
+      pg-service:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  pg-service:
+    restart: always
+    image: postgres:16  # Use specific version instead of latest
+    container_name: gymbro_db
+    ports:
+      - '5432:5432'
+    env_file:
+      - database.env
+    volumes:
+      - ./sql/gymbro.sql:/docker-entrypoint-initdb.d/gymbro.sql
+      - gymbro_gymbro_vol:/var/lib/postgresql  # Changed from /var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d gymbro" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  # Kafka Broker
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"            # Internal Spring Boot connection
+      - "29092:29092"          # External host access
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"  # Dev convenience
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Kafka UI (AKHQ) - Web Interface
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER_CONNECT: zookeeper:2181
+    restart: unless-stopped
+
+volumes:
+  gymbro_gymbro_vol:
+  kafka_data1:
+    driver: local
+  kafka_data2:
+    driver: local
+  kafka_data3:
+    driver: local
+
+networks:
+  default:
+    name: kafka-net
+    driver: bridge

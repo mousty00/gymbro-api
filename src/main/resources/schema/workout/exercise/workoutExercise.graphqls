@@ -1,0 +1,11 @@
+type WorkoutExerciseDTO {
+    id: UUID
+    workoutId: UUID
+    exerciseId: UUID
+    exerciseName: String
+    sets: Int
+    reps: Int
+    weight: Int
+    restSeconds: Int
+    position: Int
+}

@@ -1,0 +1,34 @@
+extend type Query {
+    groupMembers(id: UUID, page: UUID, size: UUID): GroupMemberConnection
+}
+
+extend type Mutation {
+    removeGroupMember(id: UUID): MessageResponse
+    addGroupMember(request: GroupMemberInput): EntityResponseGroupMember
+    acceptGroupInvitation(id: UUID): MessageResponse
+}
+
+type GroupMemberConnection implements Connection {
+    pageInfo: PageInfo!
+    totalCount: Int!
+    results: [GroupMemberDTO]
+}
+
+type GroupMemberDTO {
+    id: UUID
+    workoutGroupId: UUID
+    user: SimpleUserDTO
+    status: String
+    createdAt: String
+}
+
+input GroupMemberInput {
+    groupId: UUID!
+    invitedUsername: String!
+}
+
+interface EntityResponseGroupMember implements EntityResponse {
+    message: String
+    timestamp: String
+    result: GroupMemberDTO
+}
