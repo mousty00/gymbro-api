@@ -12,6 +12,7 @@ import com.mousty.gymbro.dto.user.UserDTO;
 import com.mousty.gymbro.pagination.Connection;
 import com.mousty.gymbro.pagination.PageInfo;
 import com.mousty.gymbro.response.MessageResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,20 +33,16 @@ import java.util.UUID;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository repository;
     private final UserMapper mapper;
     private final S3Service s3Service;
     private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+
     @Value("${default.profile.image.key}")
     private String defaultProfileImageKey;
-
-    public UserService(final UserMapper mapper, final UserRepository repository, final S3Service s3Service, final RoleRepository roleRepository) {
-        this.mapper = mapper;
-        this.repository = repository;
-        this.s3Service = s3Service;
-        this.roleRepository = roleRepository;
-    }
 
     public Connection<UserDTO> getAllUsers(final Pageable pageable) {
         final Page<User> page = repository.findAll(pageable);
@@ -87,12 +84,12 @@ public class UserService {
     }
 
     @Transactional
-    public UserDTO createUser(SignupDTO request, PasswordEncoder passwordEncoder) {
+    public UserDTO createUser(SignupDTO request) {
         if (repository.existsUsersByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
         if (repository.existsUsersByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Username already exists");
+            throw new IllegalArgumentException("Email already exists");
         }
         request.setImage(s3Service.generatePresignedUrl(defaultProfileImageKey));
         Role role = roleRepository.getRolesByName("user");

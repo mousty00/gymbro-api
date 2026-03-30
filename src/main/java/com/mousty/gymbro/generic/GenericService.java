@@ -19,8 +19,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GenericService<E,D,M extends GenericMapper<E,D> ,R extends JpaRepository<E, UUID>> {
 
-    private final M mapper;
-    private final R repository;
+    protected final M mapper;
+    protected final R repository;
 
     public Connection<D> getAll(Pageable pageable){
         final Page<E> page = repository.findAll(pageable);

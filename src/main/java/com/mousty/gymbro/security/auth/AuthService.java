@@ -60,7 +60,7 @@ public class AuthService {
 
     @Transactional
     public MessageResponse signup(SignupDTO request) {
-        userService.createUser(request, passwordEncoder);
+        userService.createUser(request);
         emailService.sendWelcomeEmail(request.getEmail(), request.getFirstName());
         sendOtp(request.getUsername());
 

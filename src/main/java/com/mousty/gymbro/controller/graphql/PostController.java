@@ -35,8 +35,10 @@ public class PostController {
     }
 
     @DgsMutation
-    public MessageResponse deletePost(@InputArgument UUID id) {
-        return service.deletePostById(id);
+    public MessageResponse deletePost(
+            @InputArgument UUID id,
+            @CurrentSecurityContext(expression = "authentication?.name") String username) {
+        return service.deletePostById(id, username);
     }
 
 //    @DgsMutation

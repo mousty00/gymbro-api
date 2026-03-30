@@ -20,16 +20,12 @@ import java.util.UUID;
 @Service
 public class LikeService extends GenericService<PostLike, LikeDTO, LikeMapper, LikeRepository> {
 
-    private final LikeMapper mapper;
-    private final LikeRepository repository;
     private final UserService userService;
     private final PostService postService;
     private final AuthService authService;
 
     public LikeService(final LikeMapper mapper, final LikeRepository repository, final UserService userService, final PostService postService, final AuthService authService) {
         super(mapper, repository);
-        this.mapper = mapper;
-        this.repository = repository;
         this.userService = userService;
         this.postService = postService;
         this.authService = authService;

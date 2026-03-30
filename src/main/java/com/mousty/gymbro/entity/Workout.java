@@ -15,7 +15,8 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -69,5 +70,18 @@ public class Workout {
 
     @OneToMany(mappedBy = "workout")
     private List<WorkoutHistory> workoutHistories;
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Workout workout = (Workout) o;
+        return id != null && id.equals(workout.id);
+    }
+
+    @Override
+    public final int hashCode() {
+        return getClass().hashCode();
+    }
 
 }

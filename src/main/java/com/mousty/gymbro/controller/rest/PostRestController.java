@@ -57,8 +57,11 @@ public class PostRestController {
     @ApiResponse(responseCode = "200", description = "Post successfully deleted")
     @ApiResponse(responseCode = "404", description = "Post not found")
     @DeleteMapping("/delete/{id}")
-    public MessageResponse deletePostById(@PathVariable final UUID id) {
-        return service.deletePostById(id);
+    public MessageResponse deletePostById(
+            @PathVariable final UUID id,
+            @CurrentSecurityContext(expression = "authentication?.name")
+            String username) {
+        return service.deletePostById(id, username);
     }
 
     @Operation(summary = "Create post", description = "Create a new post")

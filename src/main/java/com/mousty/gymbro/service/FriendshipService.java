@@ -24,16 +24,12 @@ import java.util.UUID;
 @Service
 public class FriendshipService extends GenericService<Friendship, FriendshipDTO, FriendshipMapper, FriendshipRepository> {
 
-    private final FriendshipRepository repository;
-    private final FriendshipMapper mapper;
     private final AuthService authService;
     private final PostRepository postRepository;
     private final PostMapper postMapper;
 
     public FriendshipService(final FriendshipMapper mapper, final FriendshipRepository repository, final AuthService authService, final PostRepository postRepository, final PostMapper postMapper) {
         super(mapper, repository);
-        this.mapper = mapper;
-        this.repository = repository;
         this.authService = authService;
         this.postRepository = postRepository;
         this.postMapper = postMapper;

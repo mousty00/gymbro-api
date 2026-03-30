@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,10 +20,10 @@ import java.util.function.Function;
  */
 @Component
 public class JwtUtil {
-    private final SecretKey SECRET_KEY;
+    private final SecretKey secretKey;
 
     public JwtUtil(@Value("${jwt.secret}") final String secret) {
-        this.SECRET_KEY = Keys.hmacShaKeyFor(secret.getBytes());
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -76,11 +77,11 @@ public class JwtUtil {
      * @return i claims estratti dal token
      */
     private Claims extractAllClaims(final String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+        return Jwts.parser()
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     /**
@@ -100,7 +101,7 @@ public class JwtUtil {
      * @return il token JWT generato
      */
     public String generateToken(final UserDTO request) {
-        final Map<String, String> claims = new HashMap<>();
+        final Map<String, Object> claims = new HashMap<>();
         claims.put("id", request.getId().toString());
         claims.put("username", request.getUsername());
         claims.put("email", request.getEmail());
@@ -114,13 +115,13 @@ public class JwtUtil {
      * @param username il soggetto del token ed è una sorta di identifier
      * @return il token JWT creato
      */
-    private String createToken(final Map<String, String> claims, final String username) {
+    private String createToken(final Map<String, Object> claims, final String username) {
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(username)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
-                .signWith(SECRET_KEY)
+                .claims(claims)
+                .subject(username)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .signWith(secretKey)
                 .compact();
     }
 

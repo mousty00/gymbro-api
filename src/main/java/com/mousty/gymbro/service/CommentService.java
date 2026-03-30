@@ -24,17 +24,13 @@ import java.util.UUID;
 @Service
 public class CommentService extends GenericService<PostComment, CommentDTO, CommentMapper, CommentRepository> {
 
-    private final CommentRepository repository;
-    private final CommentMapper mapper;
     private final UserService userService;
     private final PostService postService;
     private final AuthService authService;
 
 
-    public CommentService(final CommentMapper mapper, final CommentRepository repository, final UserService userService, final PostService postService, final UserRepository userRepository, final AuthService authService) {
+    public CommentService(final CommentMapper mapper, final CommentRepository repository, final UserService userService, final PostService postService, final AuthService authService) {
         super(mapper, repository);
-        this.mapper = mapper;
-        this.repository = repository;
         this.userService = userService;
         this.postService = postService;
         this.authService = authService;

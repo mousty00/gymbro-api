@@ -53,14 +53,17 @@ public class PostService {
     }
 
     @Transactional
-    public MessageResponse deletePostById(final UUID id) {
-
-        if(!repository.existsById(id)) {
-            throw new NoSuchElementException("workout not found");
+    public MessageResponse deletePostById(final UUID id, String username) {
+        Post post = repository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Post not found"));
+        
+        if (!post.getUser().getUsername().equals(username)) {
+            throw new IllegalArgumentException("User not authorized to delete this post");
         }
-        repository.deleteById(id);
+
+        repository.delete(post);
         return MessageResponse.builder()
-                .message("workout deleted!")
+                .message("Post deleted!")
                 .timestamp(Instant.now())
                 .build();
     }
@@ -73,10 +76,17 @@ public class PostService {
 
     @Transactional
     public MessageResponse updatePost(final PostDTO request, String username) {
-        authService.checkAuthorization(request.getId(), username, "User not authorized to update post");
-        getPostById(request.getId());
-        var user = userService.getUserEntityByUsername(username);
-        repository.save(mapper.toEntity(request, user));
+        Post post = repository.findById(request.getId())
+                .orElseThrow(() -> new NoSuchElementException("Post not found"));
+
+        if (!post.getUser().getUsername().equals(username)) {
+            throw new IllegalArgumentException("User not authorized to update this post");
+        }
+
+        post.setContent(request.getContent());
+        // Update other fields if necessary
+        repository.save(post);
+
         return MessageResponse.builder()
                         .message("Post updated successfully!")
                         .timestamp(Instant.now())
@@ -87,10 +97,22 @@ public class PostService {
             final PostAddDTO request,
             final MultipartFile imageFile,
             String username) {
-        authService.checkAuthorization(request.getUserId(), username, "User not authorized to create post");
-        final User user = userService.getUserEntityById(request.getUserId());
+        User user = userService.getUserEntityByUsername(username);
+        
+        if (!user.getId().equals(request.getUserId())) {
+            throw new IllegalArgumentException("User ID mismatch");
+        }
+
         final Post post = mapper.toNewEntity(request, user);
-        final PostDTO postDTO = uploadPostImage(imageFile, post, username);
+        Post savedPost = repository.save(post);
+        
+        PostDTO postDTO;
+        if (imageFile != null && !imageFile.isEmpty()) {
+            postDTO = uploadPostImage(imageFile, savedPost, username);
+        } else {
+            postDTO = mapper.toDTO(savedPost);
+        }
+
         return EntityResponse.<PostDTO>builder()
                         .message("Post added successfully!")
                         .result(postDTO)
@@ -115,7 +137,7 @@ public class PostService {
     }
 
     public Post getPostEntityById(UUID id){
-        return repository.findById(id).orElseThrow(() -> new NoSuchElementException("user not found"));
+        return repository.findById(id).orElseThrow(() -> new NoSuchElementException("Post not found"));
     }
 
 

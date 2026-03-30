@@ -25,8 +25,6 @@ import java.util.UUID;
 @Service
 public class WorkoutExerciseService extends GenericService<WorkoutExercise, WorkoutExerciseDTO, WorkoutExerciseMapper, WorkoutExerciseRepository> {
 
-    private final WorkoutExerciseMapper mapper;
-    private final WorkoutExerciseRepository repository;
     private final WorkoutService workoutService;
     private final ExerciseService exerciseService;
     private final WorkoutMapper workoutMapper;
@@ -40,8 +38,6 @@ public class WorkoutExerciseService extends GenericService<WorkoutExercise, Work
             final WorkoutMapper workoutMapper,
             final ExerciseMapper exerciseMapper) {
         super(mapper, repository);
-        this.mapper = mapper;
-        this.repository = repository;
         this.workoutService = workoutService;
         this.exerciseService = exerciseService;
         this.workoutMapper = workoutMapper;

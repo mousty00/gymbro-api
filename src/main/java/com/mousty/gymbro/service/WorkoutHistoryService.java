@@ -23,13 +23,8 @@ import java.util.UUID;
 @Service
 public class WorkoutHistoryService extends GenericService<WorkoutHistory, WorkoutHistoryDTO, WorkoutHistoryMapper, WorkoutHistoryRepository> {
 
-    private final WorkoutHistoryMapper mapper;
-    private final WorkoutHistoryRepository repository;
-
     public WorkoutHistoryService(final WorkoutHistoryMapper mapper, final WorkoutHistoryRepository repository) {
         super(mapper, repository);
-        this.mapper = mapper;
-        this.repository = repository;
     }
 
     public Connection<WorkoutHistoryDTO> getAllWorkoutHistories(Pageable pageable) {

@@ -25,16 +25,12 @@ import java.util.UUID;
 @Service
 public class GroupMemberService extends GenericService<GroupMember, GroupMemberDTO, GroupMemberMapper, GroupMemberRepository> {
 
-    private final GroupMemberMapper mapper;
-    private final GroupMemberRepository repository;
     private final AuthService authService;
     private final UserService userService;
 
     public GroupMemberService(final GroupMemberMapper mapper, final GroupMemberRepository repository,
                               final AuthService authService, final UserService userService) {
         super(mapper, repository);
-        this.repository = repository;
-        this.mapper = mapper;
         this.authService = authService;
         this.userService = userService;
     }

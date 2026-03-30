@@ -50,4 +50,17 @@ public class WorkoutHistory {
     @Column(name = "notes", length = Integer.MAX_VALUE)
     private String notes;
 
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        WorkoutHistory that = (WorkoutHistory) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public final int hashCode() {
+        return getClass().hashCode();
+    }
+
 }

@@ -21,13 +21,8 @@ import java.util.UUID;
 @Service
 public class WorkoutService extends GenericService<Workout, WorkoutDTO, WorkoutMapper, WorkoutRepository> {
 
-    private final WorkoutMapper mapper;
-    private final WorkoutRepository repository;
-
-    public WorkoutService(final WorkoutMapper mapper, final WorkoutRepository repository, final WorkoutMapper mapper1, final WorkoutRepository repository1) {
+    public WorkoutService(final WorkoutMapper mapper, final WorkoutRepository repository) {
         super(mapper, repository);
-        this.mapper = mapper1;
-        this.repository = repository1;
     }
 
     public Connection<WorkoutDTO> getAllWorkouts(Pageable pageable) {
