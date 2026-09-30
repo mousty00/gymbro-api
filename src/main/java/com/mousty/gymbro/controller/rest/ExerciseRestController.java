@@ -17,8 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
+import com.mousty.gymbro.security.CurrentUsername;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,8 +34,10 @@ public class ExerciseRestController {
     @Operation(summary = "Get all exercises", description = "Returns a paginated list of exercises")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved exercises")
     @GetMapping
-    public Connection<ExerciseDTO> getAllExercises(@PageableDefault Pageable pageable) {
-        return exerciseService.getAllExercises(pageable);
+    public Connection<ExerciseDTO> getAllExercises(
+            @PageableDefault Pageable pageable,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return exerciseService.getAllExercises(pageable, username);
     }
 
 
@@ -44,8 +45,10 @@ public class ExerciseRestController {
     @ApiResponse(responseCode = "200", description = "Exercise found")
     @ApiResponse(responseCode = "404", description = "Exercise not found")
     @GetMapping("{id}")
-    public ExerciseDTO getExerciseById(@Parameter(description = "Exercise ID") @PathVariable UUID id) {
-        return exerciseService.getExerciseById(id);
+    public ExerciseDTO getExerciseById(
+            @Parameter(description = "Exercise ID") @PathVariable UUID id,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return exerciseService.getExerciseById(id, username);
     }
 
 
@@ -58,7 +61,7 @@ public class ExerciseRestController {
     @DeleteMapping("delete/{id}")
     public MessageResponse deleteExerciseById(
             @Parameter(description = "Exercise ID") @PathVariable UUID id,
-            @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication?.name") String username) {
+            @Parameter(hidden = true) @CurrentUsername String username) {
         return exerciseService.deleteExerciseById(id, username);
     }
 
@@ -72,7 +75,7 @@ public class ExerciseRestController {
     @PutMapping("/update")
     public MessageResponse updateExercise(
             @Parameter(description = "Exercise details") @Valid @RequestBody ExerciseInput request,
-            @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication?.name") String username) {
+            @Parameter(hidden = true) @CurrentUsername String username) {
         return exerciseService.updateExercise(request, username);
     }
 
@@ -84,9 +87,9 @@ public class ExerciseRestController {
     })
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<EntityResponse<ExerciseDTO>> createExercise(
+    public EntityResponse<ExerciseDTO> createExercise(
             @Parameter(description = "Exercise details") @Validated(value = Put.class) @RequestBody ExerciseInput request,
-            @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication?.name")
+            @Parameter(hidden = true) @CurrentUsername
             String username) {
         return exerciseService.createExercise(request, username);
     }

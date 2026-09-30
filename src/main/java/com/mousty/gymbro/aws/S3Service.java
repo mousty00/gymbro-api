@@ -1,5 +1,6 @@
 package com.mousty.gymbro.aws;
 
+import com.mousty.gymbro.exception.FileUploadException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,9 +15,12 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.Set;
 
 @Service
 public class S3Service {
+
+    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of("image/png", "image/jpeg", "image/webp");
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
@@ -37,6 +41,13 @@ public class S3Service {
      * @return The key/filename of the uploaded file (not the full URL)
      */
     public String uploadFile(MultipartFile file, String fileName) {
+        if (file.isEmpty()) {
+            throw FileUploadException.empty();
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
+            throw FileUploadException.unsupportedContentType(contentType);
+        }
         try (InputStream inputStream = file.getInputStream()) {
             PutObjectRequest objectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
@@ -60,6 +71,10 @@ public class S3Service {
      * @return Pre-signed URL
      */
     public String generatePresignedUrl(String fileKey, Duration expiration) {
+        // no image (e.g. text-only post): no URL, instead of an SDK error that fails the whole response
+        if (fileKey == null || fileKey.isBlank()) {
+            return null;
+        }
         try {
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)

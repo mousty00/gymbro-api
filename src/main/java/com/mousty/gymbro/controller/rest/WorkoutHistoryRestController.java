@@ -13,7 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
+import com.mousty.gymbro.security.CurrentUsername;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -26,17 +26,19 @@ public class WorkoutHistoryRestController {
 
     private final WorkoutHistoryService service;
 
-    @Operation(summary = "Get all workout histories", description = "Returns a paginated list of all workout histories")
+    @Operation(summary = "Get my workout histories", description = "Returns a paginated list of the caller's workout histories")
     @GetMapping
-    public Connection<WorkoutHistoryDTO> getAllWorkoutHistories(@PageableDefault Pageable pageable) {
-        return service.getAllWorkoutHistories(pageable);
+    public Connection<WorkoutHistoryDTO> getAllWorkoutHistories(
+            @PageableDefault Pageable pageable,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return service.getUserWorkoutHistories(username, pageable);
     }
 
     @Operation(summary = "Get user's workout histories", description = "Returns a paginated list of workout histories for a specific user")
     @GetMapping("/user")
     public Connection<WorkoutHistoryDTO> getUserWorkoutHistories(
             @PageableDefault Pageable pageable,
-            @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication?.name") String username) {
+            @Parameter(hidden = true) @CurrentUsername String username) {
         return service.getUserWorkoutHistories(username, pageable);
     }
 
@@ -44,22 +46,24 @@ public class WorkoutHistoryRestController {
     @GetMapping("/group/{groupId}")
     public Connection<WorkoutHistoryDTO> getGroupWorkoutHistories(
             @Parameter(description = "Group ID") @PathVariable UUID groupId,
-            @PageableDefault Pageable pageable) {
-        return service.getGroupWorkoutHistories(groupId, pageable);
+            @PageableDefault Pageable pageable,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return service.getGroupWorkoutHistories(groupId, pageable, username);
     }
 
     @Operation(summary = "Get workout history by ID")
     @GetMapping("/{id}")
     public WorkoutHistoryDTO getWorkoutHistoryById(
-            @Parameter(description = "Workout history ID") @PathVariable UUID id) {
-        return service.getWorkoutHistoryById(id);
+            @Parameter(description = "Workout history ID") @PathVariable UUID id,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return service.getWorkoutHistoryById(id, username);
     }
 
     @Operation(summary = "Create workout history")
     @PostMapping
     public EntityResponse<WorkoutHistoryDTO> createWorkoutHistory(
             @Parameter(description = "Workout history details") @Valid @RequestBody WorkoutHistoryInput input,
-            @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication?.name") String username) {
+            @Parameter(hidden = true) @CurrentUsername String username) {
         return service.createWorkoutHistory(input, username);
     }
 
@@ -68,7 +72,7 @@ public class WorkoutHistoryRestController {
     public MessageResponse updateWorkoutHistory(
             @Parameter(description = "Workout history ID") @PathVariable UUID id,
             @Parameter(description = "Updated workout history details") @Valid @RequestBody WorkoutHistoryInput input,
-            @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication?.name") String username) {
+            @Parameter(hidden = true) @CurrentUsername String username) {
         return service.updateWorkoutHistory(id, input, username);
     }
 
@@ -76,7 +80,7 @@ public class WorkoutHistoryRestController {
     @DeleteMapping("delete/{id}")
     public MessageResponse deleteWorkoutHistory(
             @Parameter(description = "Workout history ID") @PathVariable UUID id,
-            @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication?.name") String username) {
+            @Parameter(hidden = true) @CurrentUsername String username) {
         return service.deleteWorkoutHistory(id, username);
     }
 }

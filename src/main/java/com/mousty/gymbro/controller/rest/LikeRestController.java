@@ -11,7 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
+import com.mousty.gymbro.security.CurrentUsername;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -40,7 +40,7 @@ public class LikeRestController {
     @PostMapping("/create")
     public LikeDTO createLike(
             @Valid @RequestBody LikeInput request,
-            @CurrentSecurityContext(expression = "authentication?.name") String username
+            @CurrentUsername String username
     ) {
         return likeService.createLike(request, username);
     }
@@ -49,7 +49,7 @@ public class LikeRestController {
     @DeleteMapping("/delete/{id}")
     public MessageResponse deleteLikeById(
             @PathVariable UUID id,
-            @CurrentSecurityContext(expression = "authentication?.name") String username
+            @CurrentUsername String username
     ) {
         return likeService.deleteLikeById(id, username);
     }

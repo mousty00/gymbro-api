@@ -34,11 +34,11 @@ public class GroupMemberMapper implements GenericMapper<GroupMember, GroupMember
     @Override
     public GroupMember toEntity(final GroupMemberDTO dto) {
         return GroupMember.builder()
-                .id(dto.getId())
-                .status(dto.getStatus())
-                .createdAt(dto.getCreatedAt())
-                .user(userService.getUserEntityById(dto.getUser().getId()))
-                .group(workoutGroupRepository.findById(dto.getWorkoutGroupId())
+                .id(dto.id())
+                .status(dto.status())
+                .createdAt(dto.createdAt())
+                .user(userService.getUserEntityById(dto.user().id()))
+                .group(workoutGroupRepository.findById(dto.workoutGroupId())
                         .orElseThrow(() -> new IllegalArgumentException("Workout group not found")))
                 .build();
     }
@@ -48,9 +48,9 @@ public class GroupMemberMapper implements GenericMapper<GroupMember, GroupMember
         return GroupMember.builder()
                 .status("invited")
                 .createdAt(Instant.now())
-                .user(userService.getUserEntityByUsername(dto.getInvitedUsername()))
+                .user(userService.getUserEntityByUsername(dto.invitedUsername()))
                 .group(WorkoutGroup.builder()
-                        .id(dto.getGroupId())
+                        .id(dto.groupId())
                         .build())
                 .build();
     }

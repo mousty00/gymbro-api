@@ -6,4 +6,8 @@ Dockerfile
 .dockerignore
 *.md
 .env
+*.env
+app.env
+database.env
+src/main/resources/application.properties
 .DS_Store

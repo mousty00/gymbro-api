@@ -28,10 +28,10 @@ public class LikeMapper implements GenericMapper<PostLike, LikeDTO> {
     @Override
     public PostLike toEntity(final LikeDTO dto) {
         return PostLike.builder()
-                .id(dto.getId())
-                .user(userMapper.toEntity(dto.getUser()))
-                .post(Post.builder().id(dto.getPostId()).build())
-                .createdAt(dto.getCreatedAt())
+                .id(dto.id())
+                .user(userMapper.toEntity(dto.user()))
+                .post(Post.builder().id(dto.postId()).build())
+                .createdAt(dto.createdAt())
                 .build();
     }
 

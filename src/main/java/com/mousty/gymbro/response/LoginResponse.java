@@ -7,6 +7,7 @@ import lombok.Builder;
 public record LoginResponse (
         String message,
         UserDTO result,
-        String token
+        String token,
+        String refreshToken
 ){
 }

@@ -13,12 +13,14 @@ import com.netflix.graphql.dgs.InputArgument;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.UUID;
 
 @DgsComponent
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class WorkoutController {
 
     private final WorkoutService service;
@@ -33,28 +35,28 @@ public class WorkoutController {
     public WorkoutDTO workout(
             @InputArgument @NotNull @Valid UUID id
     ) {
-        return service.getWorkoutById(id);
+        return service.getWorkoutById(id, authService.getCurrentUsername());
     }
 
     @DgsMutation
     public MessageResponse deleteWorkout(
             @InputArgument @NotNull @Valid UUID id
     ) {
-        return service.deleteWorkoutById(id);
+        return service.deleteWorkoutById(id, authService.getCurrentUsername());
     }
 
     @DgsMutation
     public MessageResponse updateWorkout(
             @InputArgument @NotNull @Valid WorkoutInput request
     ) {
-        return service.updateWorkout(request);
+        return service.updateWorkout(request, authService.getCurrentUsername());
     }
 
     @DgsMutation
     public EntityResponse<WorkoutDTO> createWorkout(
             @InputArgument @NotNull @Valid WorkoutInput request
     ){
-        return service.createWorkout(request);
+        return service.createWorkout(request, authService.getCurrentUsername());
     }
 
 }

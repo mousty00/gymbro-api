@@ -4,7 +4,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    createWorkoutGroup(request: WorkoutGroupInput): EntityResponseGroupMember
+    createWorkoutGroup(request: WorkoutGroupInput): WorkoutGroupEntityResponse
     deleteWorkoutGroup(id: UUID): MessageResponse
 }
 
@@ -22,7 +22,7 @@ type WorkoutGroupDTO {
 type WorkoutGroupConnection implements Connection {
     pageInfo: PageInfo!
     totalCount: Int!
-    result: WorkoutGroupDTO
+    results: [WorkoutGroupDTO]
 }
 
 type WorkoutGroupEntityResponse implements EntityResponse {
@@ -34,8 +34,6 @@ type WorkoutGroupEntityResponse implements EntityResponse {
 input WorkoutGroupInput {
     name: String
     workoutId: UUID
-    createdById: UUID
-    scheduledFor: String
+    scheduledFor: Instant
     status: String
-    groupMembersIds: [UUID]
 }

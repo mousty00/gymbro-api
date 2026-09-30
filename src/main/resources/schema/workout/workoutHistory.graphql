@@ -1,19 +1,19 @@
 extend type Query {
     workoutHistories(page: Int, size: Int): WorkoutHistoryConnection
-    GroupWorkoutHistories(groupId: UUID!,page: Int, size: Int): WorkoutHistoryConnection
+    GroupWorkoutHistories(groupId: UUID!, page: Int, size: Int): WorkoutHistoryConnection
     workoutHistory(id: UUID!): WorkoutHistoryDTO
 }
 
 extend type Mutation {
     createWorkoutHistory(request: WorkoutHistoryInput): WorkoutHistoryEntityResponse
-    updateWorkoutHistory(id: UUID, request: WorkoutHistoryInput): WorkoutHistoryDTO
+    updateWorkoutHistory(id: UUID, request: WorkoutHistoryInput): MessageResponse
     deleteWorkoutHistory(id: UUID): MessageResponse
 }
 
-type WorkoutHistoryConnection implements Connection{
+type WorkoutHistoryConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
-    result: [WorkoutHistoryDTO]
+    results: [WorkoutHistoryDTO]
 }
 
 type WorkoutHistoryDTO {
@@ -30,8 +30,8 @@ input WorkoutHistoryInput {
     workoutId: UUID
     groupId: UUID
     notes: String
-    startedAt: String
-    completedAt: String
+    startedAt: Instant
+    completedAt: Instant
 }
 
 type WorkoutHistoryEntityResponse implements EntityResponse {
@@ -39,4 +39,3 @@ type WorkoutHistoryEntityResponse implements EntityResponse {
     timestamp: String
     result: WorkoutHistoryDTO
 }
-

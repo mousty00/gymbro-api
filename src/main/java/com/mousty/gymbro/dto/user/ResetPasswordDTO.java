@@ -2,21 +2,19 @@ package com.mousty.gymbro.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class ResetPasswordDTO {
-    @NotBlank(message = "New password is required")
-    private String newPassword;
-    @NotBlank(message = "OTP is required")
-    private String otp;
+public record ResetPasswordDTO(
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
-    private String email;
-}
+    String email,
+
+    @NotBlank(message = "OTP is required")
+    String otp,
+
+    @NotBlank(message = "New password is required")
+    @Size(min = 8, message = "Password must be at least 8 characters")
+    String newPassword
+) {}

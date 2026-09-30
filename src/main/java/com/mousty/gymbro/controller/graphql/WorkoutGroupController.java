@@ -17,11 +17,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.UUID;
 
 @DgsComponent
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class WorkoutGroupController {
 
     private final WorkoutGroupService service;
@@ -33,14 +35,14 @@ public class WorkoutGroupController {
             @InputArgument @Nullable Integer size
     ) {
         Pageable pageable = PageableDefaults.INSTANCE.create(page, size);
-        return service.getAllWorkoutGroups(pageable);
+        return service.getAllWorkoutGroups(pageable, authService.getCurrentUsername());
     }
 
     @DgsQuery
     public WorkoutGroupDTO workoutGroup(
         @InputArgument @NotNull UUID id
     ){
-        return service.getWorkoutGroupById(id);
+        return service.getWorkoutGroupById(id, authService.getCurrentUsername());
     }
 
     @DgsMutation

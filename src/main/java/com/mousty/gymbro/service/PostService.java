@@ -2,6 +2,7 @@ package com.mousty.gymbro.service;
 
 import com.mousty.gymbro.aws.S3Service;
 import com.mousty.gymbro.entity.Post;
+import com.mousty.gymbro.exception.PostException;
 import com.mousty.gymbro.mapper.PostMapper;
 import com.mousty.gymbro.repository.PostRepository;
 import com.mousty.gymbro.dto.post.PostAddDTO;
@@ -11,7 +12,6 @@ import com.mousty.gymbro.pagination.Connection;
 import com.mousty.gymbro.pagination.PageInfo;
 import com.mousty.gymbro.response.EntityResponse;
 import com.mousty.gymbro.response.MessageResponse;
-import com.mousty.gymbro.security.auth.AuthService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
@@ -22,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -31,10 +30,8 @@ public class PostService {
 
     private final PostMapper mapper;
     private final PostRepository repository;
-    private final AuthService authService;
     private final S3Service s3Service;
     private final UserService userService;
-
 
     public Connection<PostDTO> getAllPosts(final Pageable pageable) {
         final Page<Post> page = repository.findAll(pageable);
@@ -55,10 +52,10 @@ public class PostService {
     @Transactional
     public MessageResponse deletePostById(final UUID id, String username) {
         Post post = repository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Post not found"));
-        
+                .orElseThrow(() -> PostException.notFound(id));
+
         if (!post.getUser().getUsername().equals(username)) {
-            throw new IllegalArgumentException("User not authorized to delete this post");
+            throw PostException.unauthorized();
         }
 
         repository.delete(post);
@@ -71,20 +68,19 @@ public class PostService {
     public PostDTO getPostById(final UUID id) {
         return repository.findById(id)
                 .map(mapper::toDTO)
-                .orElseThrow(() -> new NoSuchElementException("Post not found"));
+                .orElseThrow(() -> PostException.notFound(id));
     }
 
     @Transactional
-    public MessageResponse updatePost(final PostDTO request, String username) {
-        Post post = repository.findById(request.getId())
-                .orElseThrow(() -> new NoSuchElementException("Post not found"));
+    public MessageResponse updatePost(final UUID id, final String content, String username) {
+        Post post = repository.findById(id)
+                .orElseThrow(() -> PostException.notFound(id));
 
         if (!post.getUser().getUsername().equals(username)) {
-            throw new IllegalArgumentException("User not authorized to update this post");
+            throw PostException.unauthorized();
         }
 
-        post.setContent(request.getContent());
-        // Update other fields if necessary
+        post.setContent(content);
         repository.save(post);
 
         return MessageResponse.builder()
@@ -98,14 +94,14 @@ public class PostService {
             final MultipartFile imageFile,
             String username) {
         User user = userService.getUserEntityByUsername(username);
-        
-        if (!user.getId().equals(request.getUserId())) {
-            throw new IllegalArgumentException("User ID mismatch");
+
+        if (!user.getId().equals(request.userId())) {
+            throw PostException.userIdMismatch();
         }
 
         final Post post = mapper.toNewEntity(request, user);
         Post savedPost = repository.save(post);
-        
+
         PostDTO postDTO;
         if (imageFile != null && !imageFile.isEmpty()) {
             postDTO = uploadPostImage(imageFile, savedPost, username);
@@ -131,14 +127,12 @@ public class PostService {
         s3Service.uploadFile(imageFile, imageKey);
         post.setImageUrl(imageKey);
         repository.save(post);
-        final PostDTO dto = mapper.toDTO(post);
-        dto.setImage(s3Service.generatePresignedUrl(post.getImageUrl()));
+        PostDTO dto = mapper.toDTO(post);
+        dto = dto.toBuilder().image(s3Service.generatePresignedUrl(post.getImageUrl())).build();
         return dto;
     }
 
-    public Post getPostEntityById(UUID id){
-        return repository.findById(id).orElseThrow(() -> new NoSuchElementException("Post not found"));
+    public Post getPostEntityById(UUID id) {
+        return repository.findById(id).orElseThrow(() -> PostException.notFound(id));
     }
-
-
 }

@@ -1,15 +1,22 @@
 package com.mousty.gymbro.config;
 
-import jakarta.annotation.PostConstruct;
+import graphql.analysis.MaxQueryComplexityInstrumentation;
+import graphql.analysis.MaxQueryDepthInstrumentation;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 
 @Configuration
 public class DgsConfig {
 
-    @PostConstruct
-    public void checkSchema() {
-        ClassPathResource resource = new ClassPathResource("schema/schema.graphqls");
-        System.out.println("Schema exists: " + resource.exists());
+    // Every field (and every alias) counts toward complexity, so one request can't batch
+    // hundreds of aliased mutations, e.g. login/resetPassword guesses.
+    @Bean
+    public MaxQueryComplexityInstrumentation maxQueryComplexityInstrumentation() {
+        return new MaxQueryComplexityInstrumentation(500);
+    }
+
+    @Bean
+    public MaxQueryDepthInstrumentation maxQueryDepthInstrumentation() {
+        return new MaxQueryDepthInstrumentation(15);
     }
 }

@@ -6,6 +6,8 @@ extend type Mutation {
     resetPassword(request: ResetPasswordDTO) : MessageResponse
     sendVerifyOtp(email: String): MessageResponse
     verifyOtp(request: OTPRequest): MessageResponse
+    refreshToken(request: RefreshTokenRequest): TokenResponse
+    logout(request: RefreshTokenRequest): MessageResponse
 }
 
 input SignupDTO {
@@ -22,6 +24,17 @@ type LoginResponse {
     message: String
     result: UserDTO
     token: String
+    refreshToken: String
+}
+
+type TokenResponse {
+    message: String
+    token: String
+    refreshToken: String
+}
+
+input RefreshTokenRequest {
+    refreshToken: String
 }
 
 input ResetPasswordDTO {

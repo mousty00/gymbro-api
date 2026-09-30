@@ -1,25 +1,19 @@
 package com.mousty.gymbro.dto.post_like;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@Data
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class SimpleLikeDTO {
+public record SimpleLikeDTO(
     @NotNull
-    private UUID id;
+    UUID id,
 
     @NotNull
-    private String username;
+    String username,
 
     @NotNull
-    private Instant createdAt;
-}
+    Instant createdAt
+) {}

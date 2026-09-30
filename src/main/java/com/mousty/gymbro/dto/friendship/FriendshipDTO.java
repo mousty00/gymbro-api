@@ -3,34 +3,26 @@ package com.mousty.gymbro.dto.friendship;
 import com.mousty.gymbro.dto.user.SimpleUserDTO;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class FriendshipDTO {
+@Builder(toBuilder = true)
+public record FriendshipDTO(
+    @NotNull
+    UUID id,
 
     @NotNull
-    private UUID id;
+    SimpleUserDTO user,
 
     @NotNull
-    private SimpleUserDTO user;
-
-    @NotNull
-    private SimpleUserDTO friend;
+    SimpleUserDTO friend,
 
     @Size(max = 20)
     @NotNull
-    private String status;
+    String status,
 
     @NotNull
-    private Instant createdAt;
-
-}
+    Instant createdAt
+) {}

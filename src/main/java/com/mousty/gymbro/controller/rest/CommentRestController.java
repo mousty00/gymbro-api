@@ -14,8 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
+import com.mousty.gymbro.security.CurrentUsername;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,10 +31,10 @@ public class CommentRestController {
     @Operation(summary = "Get all comments", description = "Returns a paginated list of all comments")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Connection<CommentDTO>> getAllComments(
+    public Connection<CommentDTO> getAllComments(
             @Parameter(description = "Pagination information")
             @PageableDefault Pageable pageable) {
-        return ResponseEntity.ok(commentService.getAllComments(pageable));
+        return commentService.getAllComments(pageable);
     }
 
     @Operation(summary = "Get comment by ID", description = "Returns a comment by its ID")
@@ -51,7 +50,7 @@ public class CommentRestController {
             @Parameter(description = "Comment ID")
             @PathVariable UUID id,
             @Parameter(hidden = true)
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username
     ) {
         return commentService.deleteById(id, username);
@@ -65,7 +64,7 @@ public class CommentRestController {
             @Validated @RequestBody
             SimpleCommentDTO request,
             @Parameter(hidden = true)
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username
     ) {
         return commentService.updateComment(request, username);
@@ -78,7 +77,7 @@ public class CommentRestController {
             @Parameter(description = "Comment to create")
             @Validated @RequestBody CommentInput request,
             @Parameter(hidden = true)
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username
     ) {
         return commentService.createComment(request, username);

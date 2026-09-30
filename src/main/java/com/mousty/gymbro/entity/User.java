@@ -89,7 +89,22 @@ public class User {
     @Column(name = "reset_otp_expired_at")
     private Long resetOtpExpiredAt;
 
-    @NotNull
+    @Builder.Default
+    @ColumnDefault("0")
+    @Column(name = "failed_login_attempts")
+    private Integer failedLoginAttempts = 0;
+
+    @Column(name = "login_locked_until")
+    private Long loginLockedUntil;
+
+    @Builder.Default
+    @ColumnDefault("0")
+    @Column(name = "otp_failed_attempts")
+    private Integer otpFailedAttempts = 0;
+
+    @Column(name = "otp_locked_until")
+    private Long otpLockedUntil;
+
     @CreationTimestamp
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Column(name = "created_at", nullable = false)

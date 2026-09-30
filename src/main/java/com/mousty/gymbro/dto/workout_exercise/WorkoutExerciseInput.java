@@ -1,38 +1,32 @@
 package com.mousty.gymbro.dto.workout_exercise;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class WorkoutExerciseInput {
-    private UUID id;
+@Builder(toBuilder = true)
+public record WorkoutExerciseInput(
+    UUID id,
 
     @NotNull
-    private UUID workoutId;
+    UUID workoutId,
 
     @NotNull
-    private UUID exerciseId;
+    UUID exerciseId,
 
     @NotNull
-    private Integer sets;
+    Integer sets,
 
     @NotNull
-    private Integer reps;
+    Integer reps,
 
-    private BigDecimal weight;
-
-    @NotNull
-    private Integer restSeconds;
+    BigDecimal weight,
 
     @NotNull
-    private Integer position;
-}
+    Integer restSeconds,
+
+    @NotNull
+    Integer position
+) {}

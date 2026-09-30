@@ -5,7 +5,8 @@ extend type Query {
 }
 
 extend type Mutation {
-    deleteUser(id: UUID): MessageResponse
+    # deletes the caller's own account
+    deleteUser: MessageResponse
 }
 
 type UserConnection implements Connection {

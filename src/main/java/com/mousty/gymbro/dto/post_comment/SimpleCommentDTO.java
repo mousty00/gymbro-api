@@ -1,31 +1,24 @@
 package com.mousty.gymbro.dto.post_comment;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class SimpleCommentDTO {
-
-    private UUID id;
+@Builder(toBuilder = true)
+public record SimpleCommentDTO(
+    UUID id,
 
     @NotNull
-    private UUID postId;
+    UUID postId,
 
     @NotNull
-    private String username;
+    String username,
 
     @NotNull
-    private String content;
+    String content,
 
     @NotNull
-    private Instant createdAt;
-}
+    Instant createdAt
+) {}

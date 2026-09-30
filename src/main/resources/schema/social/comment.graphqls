@@ -1,12 +1,11 @@
 extend type Query {
-    comments(page: Int, size: Int) : CommentConnection
+    comments(page: Int, size: Int): CommentConnection
     comment(id: UUID): CommentDTO
 }
 
-
 extend type Mutation {
     deleteComment(id: UUID): MessageResponse
-    createComment(request: CommentInput): MessageResponse
+    createComment(request: CommentInput): CommentEntityResponse
 }
 
 type CommentDTO {
@@ -19,9 +18,7 @@ type CommentDTO {
 
 input CommentInput {
     postId: UUID!
-    username: String!
     content: String!
-    createdAt: String
 }
 
 type SimpleCommentDTO {
@@ -35,5 +32,11 @@ type SimpleCommentDTO {
 type CommentConnection implements Connection {
     pageInfo: PageInfo!
     totalCount: Int!
-    result: [CommentDTO]
+    results: [CommentDTO]
+}
+
+type CommentEntityResponse implements EntityResponse {
+    message: String
+    timestamp: String
+    result: CommentDTO
 }

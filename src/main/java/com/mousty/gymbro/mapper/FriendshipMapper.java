@@ -29,11 +29,11 @@ public class FriendshipMapper implements GenericMapper<Friendship, FriendshipDTO
     @Override
     public Friendship toEntity(final FriendshipDTO dto) {
         return Friendship.builder()
-                .id(dto.getId())
-                .user(userService.getUserEntityById(dto.getUser().getId()))
-                .friend(userService.getUserEntityById(dto.getFriend().getId()))
-                .status(dto.getStatus())
-                .createdAt(dto.getCreatedAt())
+                .id(dto.id())
+                .user(userService.getUserEntityById(dto.user().id()))
+                .friend(userService.getUserEntityById(dto.friend().id()))
+                .status(dto.status())
+                .createdAt(dto.createdAt())
                 .updatedAt(null)
                 .build();
     }

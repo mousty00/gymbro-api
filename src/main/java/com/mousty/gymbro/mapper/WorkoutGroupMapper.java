@@ -63,12 +63,12 @@ public class WorkoutGroupMapper implements GenericMapper<WorkoutGroup, WorkoutGr
     @Override
     public WorkoutGroup toEntity(final WorkoutGroupDTO dto) {
         return WorkoutGroup.builder()
-                .id(dto.getId())
-                .name(dto.getName())
-                .status(dto.getStatus())
-                .scheduledFor(dto.getScheduledFor())
-                .workout(workoutService.getUserWorkoutEntityById(dto.getWorkout().getId()))
-                .createdAt(dto.getCreatedAt())
+                .id(dto.id())
+                .name(dto.name())
+                .status(dto.status())
+                .scheduledFor(dto.scheduledFor())
+                .workout(workoutService.getUserWorkoutEntityById(dto.workout().id()))
+                .createdAt(dto.createdAt())
                 .workoutHistories(null)
                 .build();
     }
@@ -77,9 +77,9 @@ public class WorkoutGroupMapper implements GenericMapper<WorkoutGroup, WorkoutGr
                                     final Workout workout,
                                     List<GroupMember> groupMembers) {
         return WorkoutGroup.builder()
-                .name(request.getName())
+                .name(request.name())
                 .status("scheduled")
-                .scheduledFor(request.getScheduledFor())
+                .scheduledFor(request.scheduledFor())
                 .workout(workout)
                 .groupMembers(groupMembers)
                 .build();

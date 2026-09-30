@@ -7,6 +7,7 @@ import com.mousty.gymbro.pagination.Connection;
 import com.mousty.gymbro.response.EntityResponse;
 import com.mousty.gymbro.response.MessageResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -14,7 +15,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
+import com.mousty.gymbro.security.CurrentUsername;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -30,11 +31,14 @@ public class GroupMemberRestController {
     @Operation(summary = "Get all group members", description = "Returns a paginated list of group members, optionally filtered by group ID")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved group members")
     @GetMapping
-    public Connection<GroupMemberDTO> getAllGroupMembers(@RequestParam UUID groupId, @PageableDefault Pageable pageable) {
+    public Connection<GroupMemberDTO> getAllGroupMembers(
+            @RequestParam(required = false) UUID groupId,
+            @PageableDefault Pageable pageable,
+            @Parameter(hidden = true) @CurrentUsername String username) {
         if (groupId != null) {
-            return service.getGroupMembersByGroupId(groupId, pageable);
+            return service.getGroupMembersByGroupId(groupId, pageable, username);
         }
-        return service.getAllGroupMembers(pageable);
+        return service.getAllGroupMembers(pageable, username);
     }
 
     @Operation(summary = "Delete group member", description = "Removes a member from a group")
@@ -42,7 +46,7 @@ public class GroupMemberRestController {
     @ApiResponse(responseCode = "404", description = "Member not found")
     @DeleteMapping("/delete/{id}")
     public MessageResponse deleteGroupMemberById(@PathVariable @NotNull UUID id,
-                                                                 @CurrentSecurityContext(expression = "authentication?.name")
+                                                                 @CurrentUsername
                                                                  String username) {
         return service.deleteGroupMemberById(id, username);
     }
@@ -52,7 +56,7 @@ public class GroupMemberRestController {
     @ApiResponse(responseCode = "400", description = "Invalid input")
     @PostMapping("/create")
     public EntityResponse<GroupMemberDTO> createGroupMember(@Valid @RequestBody GroupMemberInput request,
-                                                                            @CurrentSecurityContext(expression = "authentication?.name")
+                                                                            @CurrentUsername
                                                                             String username) {
         return service.createGroupMember(request, username);
     }
@@ -62,7 +66,7 @@ public class GroupMemberRestController {
     @ApiResponse(responseCode = "404", description = "Invitation not found")
     @PostMapping("/accept-invitation/{id}")
     public MessageResponse acceptGroupMemberInvitation(@PathVariable @NotNull UUID id,
-                                                                            @CurrentSecurityContext(expression = "authentication?.name")
+                                                                            @CurrentUsername
                                                                             String username) {
         return service.acceptGroupMemberInvitation(id, username);
     }
@@ -72,7 +76,7 @@ public class GroupMemberRestController {
     @ApiResponse(responseCode = "404", description = "Invitation not found")
     @PostMapping("/reject-invitation/{id}")
     public MessageResponse rejectGroupMemberInvitation(@PathVariable @NotNull UUID id,
-                                                                       @CurrentSecurityContext(expression = "authentication?.name")
+                                                                       @CurrentUsername
                                                                        String username) {
         return service.rejectGroupMemberInvitation(id, username);
     }

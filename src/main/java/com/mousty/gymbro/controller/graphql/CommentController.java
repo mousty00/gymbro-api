@@ -11,14 +11,17 @@ import com.netflix.graphql.dgs.DgsMutation;
 import com.netflix.graphql.dgs.DgsQuery;
 import com.netflix.graphql.dgs.InputArgument;
 import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
+import com.mousty.gymbro.generic.PageableDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
+import com.mousty.gymbro.security.CurrentUsername;
 
 import java.util.UUID;
 
 @DgsComponent
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class CommentController {
 
     private final CommentService service;
@@ -28,9 +31,7 @@ public class CommentController {
             @InputArgument @Nullable Integer page,
             @InputArgument @Nullable Integer size
     ) {
-        return service.getAllComments(PageRequest.of(
-                page != null ? page : 0,
-                size != null ? size : 15));
+        return service.getAllComments(PageableDefaults.INSTANCE.create(page, size));
     }
 
     @DgsQuery
@@ -41,15 +42,15 @@ public class CommentController {
     @DgsMutation
     public MessageResponse deleteComment(
             @InputArgument UUID id,
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username) {
         return service.deleteById(id, username);
     }
 
     @DgsMutation
     public EntityResponse<CommentDTO> createComment(
-            @InputArgument CommentInput request,
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @Valid @InputArgument CommentInput request,
+            @CurrentUsername
             String username) {
         return service.createComment(request, username);
     }

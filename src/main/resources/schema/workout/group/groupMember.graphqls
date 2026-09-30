@@ -1,11 +1,12 @@
 extend type Query {
-    groupMembers(id: UUID, page: UUID, size: UUID): GroupMemberConnection
+    groupMembers(id: UUID, page: Int, size: Int): GroupMemberConnection
 }
 
 extend type Mutation {
     removeGroupMember(id: UUID): MessageResponse
     addGroupMember(request: GroupMemberInput): EntityResponseGroupMember
     acceptGroupInvitation(id: UUID): MessageResponse
+    rejectGroupInvitation(id: UUID): MessageResponse
 }
 
 type GroupMemberConnection implements Connection {
@@ -27,7 +28,7 @@ input GroupMemberInput {
     invitedUsername: String!
 }
 
-interface EntityResponseGroupMember implements EntityResponse {
+type EntityResponseGroupMember implements EntityResponse {
     message: String
     timestamp: String
     result: GroupMemberDTO

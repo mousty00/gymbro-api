@@ -6,13 +6,14 @@ import com.mousty.gymbro.dto.user.ResetPasswordDTO;
 import com.mousty.gymbro.dto.user.SignupDTO;
 import com.mousty.gymbro.dto.user.UserDTO;
 import com.mousty.gymbro.request.OTPRequest;
+import com.mousty.gymbro.request.RefreshTokenRequest;
 import com.mousty.gymbro.response.LoginResponse;
 import com.mousty.gymbro.response.MessageResponse;
-import com.mousty.gymbro.security.jwt.JwtUtil;
+import com.mousty.gymbro.response.TokenResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
+import com.mousty.gymbro.security.CurrentUsername;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,7 +23,6 @@ public class AuthRestController {
 
     private final AuthService authService;
     private final UserService userService;
-    private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginDTO request) {
@@ -40,10 +40,10 @@ public class AuthRestController {
         authService.sendResetOtp(email);
     }
 
+    // JwtFilter already validated the bearer token and populated the security context.
     @GetMapping("/is-authenticated")
-    public Boolean isAuthenticated(@RequestHeader(value = "Authorization") String token) {
-        token = token.substring(7);
-        return jwtUtil.isValid(token);
+    public Boolean isAuthenticated(@CurrentUsername String username) {
+        return username != null;
     }
 
     @PostMapping("/reset-password")
@@ -63,7 +63,17 @@ public class AuthRestController {
     }
 
     @GetMapping("/profile")
-    public UserDTO getProfile(@CurrentSecurityContext(expression = "authentication?.name") String username) {
+    public UserDTO getProfile(@CurrentUsername String username) {
         return userService.getUserWithImageUrl(username);
+    }
+
+    @PostMapping("/refresh")
+    public TokenResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return authService.refresh(request);
+    }
+
+    @PostMapping("/logout")
+    public MessageResponse logout(@Valid @RequestBody RefreshTokenRequest request) {
+        return authService.logout(request);
     }
 }
