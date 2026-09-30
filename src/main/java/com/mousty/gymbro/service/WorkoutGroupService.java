@@ -1,5 +1,6 @@
 package com.mousty.gymbro.service;
 
+import org.springframework.transaction.annotation.Transactional;
 import com.mousty.gymbro.exception.WorkoutGroupException;
 import com.mousty.gymbro.generic.GenericService;
 import com.mousty.gymbro.entity.Workout;
@@ -22,6 +23,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@Transactional(readOnly = true)
 @Service
 public class WorkoutGroupService extends GenericService<WorkoutGroup, WorkoutGroupDTO, WorkoutGroupMapper, WorkoutGroupRepository> {
     private final AuthService authService;
@@ -42,6 +44,7 @@ public class WorkoutGroupService extends GenericService<WorkoutGroup, WorkoutGro
         this.groupMemberRepository = groupMemberRepository;
     }
 
+    @Transactional
     public EntityResponse<WorkoutGroupDTO> createWorkoutGroup(WorkoutGroupInput request, String username) {
         final Workout workout = workoutService.getVisibleWorkout(request.workoutId(), username);
         final WorkoutGroup newGroup = mapper.toNewEntity(request, workout, null);
@@ -86,6 +89,7 @@ public class WorkoutGroupService extends GenericService<WorkoutGroup, WorkoutGro
                 .orElseThrow(() -> WorkoutGroupException.notFound(id));
     }
 
+    @Transactional
     public MessageResponse deleteWorkoutGroup(final UUID id, final String username) {
         final WorkoutGroup workoutGroup = getWorkoutGroupEntityById(id);
         authService.checkAuthorization(workoutGroup.getCreatedBy(), username, "User not authorized to delete workout group");

@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@Transactional(readOnly = true)
 @Service
 public class WorkoutExerciseService extends GenericService<WorkoutExercise, WorkoutExerciseDTO, WorkoutExerciseMapper, WorkoutExerciseRepository> {
 

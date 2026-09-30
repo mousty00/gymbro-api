@@ -14,13 +14,14 @@ import com.mousty.gymbro.pagination.Connection;
 import com.mousty.gymbro.response.EntityResponse;
 import com.mousty.gymbro.response.MessageResponse;
 import com.mousty.gymbro.security.auth.AuthService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@Transactional(readOnly = true)
 @Service
 public class CommentService extends GenericService<PostComment, CommentDTO, CommentMapper, CommentRepository> {
 
@@ -69,6 +70,7 @@ public class CommentService extends GenericService<PostComment, CommentDTO, Comm
                 .build();
     }
 
+    @Transactional
     public EntityResponse<CommentDTO> createComment(CommentInput request, String username) {
         final User user = userService.getUserEntityByUsername(username);
         final Post post = postService.getPostEntityById(request.postId());

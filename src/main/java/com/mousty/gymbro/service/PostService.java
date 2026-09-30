@@ -12,7 +12,7 @@ import com.mousty.gymbro.pagination.Connection;
 import com.mousty.gymbro.pagination.PageInfo;
 import com.mousty.gymbro.response.EntityResponse;
 import com.mousty.gymbro.response.MessageResponse;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.data.domain.Page;
@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -89,6 +90,7 @@ public class PostService {
                 .build();
     }
 
+    @Transactional
     public EntityResponse<PostDTO> createPost(
             final PostAddDTO request,
             final MultipartFile imageFile,
@@ -116,6 +118,7 @@ public class PostService {
                 .build();
     }
 
+    @Transactional
     public PostDTO uploadPostImage(MultipartFile imageFile, Post post, String username) {
         if (imageFile == null || imageFile.isEmpty()) {
             throw new IllegalArgumentException("File cannot be empty");

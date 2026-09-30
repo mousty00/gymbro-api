@@ -10,21 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: gymbro
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d gymbro"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
     steps:
       - uses: actions/checkout@v4
 
@@ -35,10 +20,8 @@ jobs:
           java-version: "21"
           cache: maven
 
+      # Integration tests start their own Postgres with Testcontainers (Docker is preinstalled on ubuntu-latest)
       - name: Build and test
         env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/gymbro
-          SPRING_DATASOURCE_USERNAME: postgres
-          SPRING_DATASOURCE_PASSWORD: postgres
           JWT_SECRET: ci-only-secret-not-for-production-use-0123456789
         run: ./mvnw -B clean verify

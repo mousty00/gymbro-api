@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class GenericService<E,D,M extends GenericMapper<E,D> ,R extends JpaRepository<E, UUID>> {
 

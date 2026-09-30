@@ -81,6 +81,8 @@ public class AuthService {
             user.setFailedLoginAttempts(0);
             user.setLoginLockedUntil(null);
             userRepository.save(user);
+            // checked only after the password is correct, so it reveals nothing to someone guessing
+            requireVerified(user);
 
             UserDTO userDTO = userService.getUserByUsername(request.username());
             final String token = jwtTokenProvider.generateToken(userDTO);
@@ -105,7 +107,7 @@ public class AuthService {
     public MessageResponse signup(SignupDTO request) {
         userService.createUser(request);
         emailService.sendWelcomeEmail(request.email(), request.firstName());
-        sendOtp(request.username());
+        sendOtp(request.email());
 
         return MessageResponse.builder()
                         .message("Signup successful!")
@@ -115,6 +117,7 @@ public class AuthService {
     @Transactional
     public TokenResponse refresh(RefreshTokenRequest request) {
         final User user = refreshTokenService.validateAndRevoke(request.refreshToken());
+        requireVerified(user);
         final UserDTO userDTO = userService.getUserByUsername(user.getUsername());
         final String newAccessToken = jwtTokenProvider.generateToken(userDTO);
         final String newRefreshToken = refreshTokenService.issue(user);
@@ -221,23 +224,29 @@ public class AuthService {
     }
 
     @Transactional
-    public MessageResponse sendOtp(String username) {
-        final User user = userRepository.findUserByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User %s not found".formatted(username)));
-
-        if (user.getIsAccountVerified() != null && user.getIsAccountVerified()) {
-            throw AuthException.alreadyVerified();
+    /** (Re)sends the verification code. Same response for unknown and already-verified emails: no enumeration. */
+    public MessageResponse sendOtp(String email) {
+        final MessageResponse response = MessageResponse.builder()
+                .message("If the account exists and is not verified, a verification email has been sent")
+                .build();
+        final Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty() || Boolean.TRUE.equals(userOpt.get().getIsAccountVerified())) {
+            return response;
         }
+        final User user = userOpt.get();
         String otp = newOtp();
         Long expiryTime = System.currentTimeMillis() + (24 * 60 * 60 * 1000);
         user.setVerifyOtp(hashOtp(otp));
         user.setVerifyOtpExpiredAt(expiryTime);
         userRepository.save(user);
         emailService.sendOtpEmail(user.getEmail(), user.getFirstName(), otp);
+        return response;
+    }
 
-        return MessageResponse.builder()
-                .message("Account Verification Email sent successfully")
-                .build();
+    private static void requireVerified(User user) {
+        if (!Boolean.TRUE.equals(user.getIsAccountVerified())) {
+            throw AuthException.emailNotVerified();
+        }
     }
 
     @Transactional(noRollbackFor = AuthException.class)

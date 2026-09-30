@@ -173,4 +173,21 @@ class RefreshTokenServiceTest {
             verify(repository, never()).save(any());
         }
     }
+
+    @Nested
+    @DisplayName("purgeExpiredAndRevoked")
+    class Purge {
+
+        @Test
+        @DisplayName("bulk-deletes tokens expired before now (and revoked ones)")
+        void deletesExpired() {
+            Instant before = Instant.now();
+
+            service.purgeExpiredAndRevoked();
+
+            ArgumentCaptor<Instant> cutoff = ArgumentCaptor.forClass(Instant.class);
+            verify(repository).deleteExpiredOrRevoked(cutoff.capture());
+            assertThat(cutoff.getValue()).isBetween(before, Instant.now());
+        }
+    }
 }

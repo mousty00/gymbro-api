@@ -57,10 +57,26 @@ APP_CORS_ALLOWED_ORIGINS=https://app.<domain>
 Missing `JWT_SECRET`, `APP_CORS_ALLOWED_ORIGINS`, datasource, S3 or mail vars → app fails at
 startup (intended: no silent insecure defaults).
 
-## 4. Health
+## 4. Health and metrics
 
-`GET https://api.<domain>/api/actuator/health` → `{"status":"UP"}`.
-The Docker image has a `HEALTHCHECK` on the same endpoint; Dokploy shows it as container health.
+Actuator runs on a separate internal port, `8081` (`MANAGEMENT_PORT`). Traefik only routes the
+domain to `8080`, so these endpoints are never public:
+
+- `http://<container>:8081/actuator/health` — the image's `HEALTHCHECK` uses it; Dokploy shows it
+  as container health.
+- `http://<container>:8081/actuator/prometheus` — metrics (JVM, HTTP latency per endpoint,
+  Hikari pool, `application=gymbro` tag). Scrape it from a Prometheus container on the same
+  `dokploy-network`, e.g.:
+
+```yaml
+scrape_configs:
+  - job_name: gymbro
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["<gymbro-api internal host>:8081"]
+```
+
+Don't add a Dokploy domain for port 8081.
 
 ## 5. Auto-deploy
 
