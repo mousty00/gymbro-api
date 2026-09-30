@@ -8,11 +8,13 @@ public enum PageableDefaults {
 
     private static final int DEFAULT_PAGE = 0;
     private static final int DEFAULT_SIZE = 15;
+    // same cap as spring.data.web.pageable.max-page-size for REST
+    private static final int MAX_SIZE = 100;
 
     public Pageable create(Integer page, Integer size) {
         return PageRequest.of(
-                page != null ? page : DEFAULT_PAGE,
-                size != null ? size : DEFAULT_SIZE
+                page != null ? Math.max(page, 0) : DEFAULT_PAGE,
+                size != null ? Math.clamp(size, 1, MAX_SIZE) : DEFAULT_SIZE
         );
     }
 

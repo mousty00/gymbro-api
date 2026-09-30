@@ -4,11 +4,14 @@ import com.mousty.gymbro.dto.user.LoginDTO;
 import com.mousty.gymbro.dto.user.ResetPasswordDTO;
 import com.mousty.gymbro.dto.user.SignupDTO;
 import com.mousty.gymbro.request.OTPRequest;
+import com.mousty.gymbro.request.RefreshTokenRequest;
 import com.mousty.gymbro.response.LoginResponse;
 import com.mousty.gymbro.response.MessageResponse;
+import com.mousty.gymbro.response.TokenResponse;
 import com.netflix.graphql.dgs.DgsComponent;
 import com.netflix.graphql.dgs.DgsMutation;
 import com.netflix.graphql.dgs.InputArgument;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @DgsComponent
@@ -18,12 +21,12 @@ public class AuthController {
     private final AuthService service;
 
     @DgsMutation
-    public LoginResponse login(@InputArgument LoginDTO credentials) {
+    public LoginResponse login(@Valid @InputArgument LoginDTO credentials) {
         return service.login(credentials);
     }
 
     @DgsMutation
-    public MessageResponse signup(@InputArgument SignupDTO credentials) {
+    public MessageResponse signup(@Valid @InputArgument SignupDTO credentials) {
         return service.signup(credentials);
     }
 
@@ -36,7 +39,7 @@ public class AuthController {
     }
 
     @DgsMutation
-    public MessageResponse resetPassword(@InputArgument ResetPasswordDTO request) {
+    public MessageResponse resetPassword(@Valid @InputArgument ResetPasswordDTO request) {
         return service.resetPassword(request);
     }
 
@@ -46,8 +49,18 @@ public class AuthController {
     }
 
     @DgsMutation
-    public MessageResponse verifyOtp(@InputArgument OTPRequest request) {
+    public MessageResponse verifyOtp(@Valid @InputArgument OTPRequest request) {
         return service.verifyOtp(request);
+    }
+
+    @DgsMutation
+    public TokenResponse refreshToken(@Valid @InputArgument RefreshTokenRequest request) {
+        return service.refresh(request);
+    }
+
+    @DgsMutation
+    public MessageResponse logout(@Valid @InputArgument RefreshTokenRequest request) {
+        return service.logout(request);
     }
 
 }

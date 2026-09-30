@@ -6,6 +6,7 @@ extend type Query {
 extend type Mutation {
     deleteExercise(id: UUID): MessageResponse
     updateExercise(request: ExerciseInput): MessageResponse
+    createExercise(request: ExerciseInput): ExerciseEntityResponse
 }
 
 interface ExerciseFields {
@@ -32,7 +33,6 @@ input ExerciseInput {
     description: String
     muscleGroup: String
     isPublic: Boolean
-    createdByUserId: UUID
 }
 
 type ExerciseConnection implements Connection {
@@ -41,8 +41,8 @@ type ExerciseConnection implements Connection {
     results: [ExerciseDTO]
 }
 
-type ExerciseEntityResponse implements EntityResponse{
+type ExerciseEntityResponse implements EntityResponse {
     message: String
     timestamp: String
-    result: PostDTO
+    result: ExerciseDTO
 }

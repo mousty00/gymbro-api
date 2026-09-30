@@ -1,5 +1,6 @@
 package com.mousty.gymbro.service;
 
+import com.mousty.gymbro.exception.LikeException;
 import com.mousty.gymbro.generic.GenericService;
 import com.mousty.gymbro.entity.Post;
 import com.mousty.gymbro.mapper.LikeMapper;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -31,23 +33,35 @@ public class LikeService extends GenericService<PostLike, LikeDTO, LikeMapper, L
         this.authService = authService;
     }
 
-    public Connection<LikeDTO> getAllLikes (Pageable pageable) {
+    public Connection<LikeDTO> getAllLikes(Pageable pageable) {
         return getAll(pageable);
     }
 
     @Transactional
     public MessageResponse deleteLikeById(UUID id, String username) {
-        return delete(id, "Like not found", "Like deleted successfully!");
+        final PostLike like = repository.findById(id)
+                .orElseThrow(() -> LikeException.notFound(id));
+        authService.checkAuthorization(like.getUser(), username, "User not authorized to delete like");
+        repository.delete(like);
+        return MessageResponse.builder()
+                .message("Like deleted successfully!")
+                .timestamp(Instant.now())
+                .build();
     }
 
     public LikeDTO getLikeById(UUID id) {
-        return getById(id, "Like not found");
+        return repository.findById(id)
+                .map(mapper::toDTO)
+                .orElseThrow(() -> LikeException.notFound(id));
     }
 
-    public LikeDTO createLike(LikeInput request,String username) {
-        authService.checkAuthorization(request.getUserId(), username, "User not authorized to create like");
-        final User user = userService.getUserEntityById(request.getUserId());
-        final Post post = postService.getPostEntityById(request.getPostId());
+    public LikeDTO createLike(LikeInput request, String username) {
+        authService.checkAuthorization(request.userId(), username, "User not authorized to create like");
+        final User user = userService.getUserEntityById(request.userId());
+        final Post post = postService.getPostEntityById(request.postId());
+        if (repository.existsByUser_IdAndPost_Id(user.getId(), post.getId())) {
+            throw LikeException.duplicate();
+        }
         final PostLike like = repository.save(mapper.toNewEntity(user, post));
         return mapper.toDTO(like);
     }

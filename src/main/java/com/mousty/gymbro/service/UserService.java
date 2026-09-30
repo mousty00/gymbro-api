@@ -2,6 +2,7 @@ package com.mousty.gymbro.service;
 
 import com.mousty.gymbro.aws.S3Service;
 import com.mousty.gymbro.entity.Role;
+import com.mousty.gymbro.exception.UserException;
 import com.mousty.gymbro.repository.RoleRepository;
 import com.mousty.gymbro.entity.User;
 import com.mousty.gymbro.mapper.UserMapper;
@@ -18,17 +19,13 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -47,7 +44,7 @@ public class UserService {
     public Connection<UserDTO> getAllUsers(final Pageable pageable) {
         final Page<User> page = repository.findAll(pageable);
         final List<UserDTO> users = page
-                .map(mapper::toDTO)
+                .map(user -> mapper.toPublicDTO(user, s3Service.generatePresignedUrl(user.getImage())))
                 .toList();
         PageInfo info = new PageInfo(page.hasNext(), page.hasPrevious(),
                 page.getNumberOfElements(), page.getTotalPages(), page.getNumber());
@@ -58,163 +55,117 @@ public class UserService {
     @Transactional
     public UserDTO getUserByUsername(String username) {
         return repository.findUserByUsername(username)
-                .map(mapper::toDTO)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+                .map(user -> mapper.toDTO(user, s3Service.generatePresignedUrl(user.getImage())))
+                .orElseThrow(() -> UserException.notFound(username));
     }
 
     public List<SimpleUserDTO> searchAllByUsername(String username) {
         return repository.findAllByUsernameLike(username)
-                .stream().map( user -> {
-                    return mapper.toSimpleDTO(user, s3Service.generatePresignedUrl(user.getImage()));
-                })
+                .stream().map(user -> mapper.toSimpleDTO(user, s3Service.generatePresignedUrl(user.getImage())))
                 .toList();
     }
 
-    @Transactional
-    public UserDTO getUserByEmail(String email) {
-        final User user = repository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
-        return mapper.toDTO(user);
+    public UserDTO getPublicUserByUsername(String username) {
+        return repository.findUserByUsername(username)
+                .map(user -> mapper.toPublicDTO(user, s3Service.generatePresignedUrl(user.getImage())))
+                .orElseThrow(() -> UserException.notFound(username));
     }
 
     public UserDTO getUserById(UUID id) {
         return repository.findById(id)
-                .map(mapper::toDTO)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+                .map(user -> mapper.toPublicDTO(user, s3Service.generatePresignedUrl(user.getImage())))
+                .orElseThrow(() -> UserException.notFound(id));
     }
 
     @Transactional
     public UserDTO createUser(SignupDTO request) {
-        if (repository.existsUsersByUsername(request.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
+        if (repository.existsUsersByUsername(request.username())) {
+            throw UserException.alreadyExists("Username", request.username());
         }
-        if (repository.existsUsersByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+        if (repository.existsUsersByEmail(request.email())) {
+            throw UserException.alreadyExists("Email", request.email());
         }
-        request.setImage(s3Service.generatePresignedUrl(defaultProfileImageKey));
-        Role role = roleRepository.getRolesByName("user");
-        final User user = repository.save(mapper.fromSignupDTO(request,role, passwordEncoder));
-        return mapper.toDTO(user);
+        // entity stores the S3 key; presigned URLs are generated on read and expire
+        Role role = roleRepository.getRolesByName("User");
+        final User user = repository.save(mapper.fromSignupDTO(request, role, defaultProfileImageKey, passwordEncoder));
+        return mapper.toDTO(user, s3Service.generatePresignedUrl(defaultProfileImageKey));
     }
 
+    // Self-service only: the account to delete comes from the bearer token, never from the client.
     @Transactional
-    public MessageResponse deleteUserById(UUID id) {
-        if (!repository.existsById(id)) {
-            throw new NoSuchElementException("user not found");
-        }
-        repository.deleteById(id);
+    public MessageResponse deleteCurrentUser(String username) {
+        repository.delete(getUserEntityByUsername(username));
         return MessageResponse.builder()
-                .message("user deleted!")
+                .message("User deleted!")
                 .timestamp(Instant.now())
                 .build();
     }
 
-//    public ResponseEntity<?> updateUser(UserInput userRequest) {
-//        repository.findById(UUID.fromString(userRequest.getId()));
-//        var posts = postService.getAllUserPosts(actualUser.getUsername());
-//        var
-//
-//        final User updatedUser = repository.save(mapper.toEntity(actualUser,posts, ));
-//
-//        Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
-//
-//        if (currentAuth.getName().equals(actualUser.getUsername())) {
-//            Authentication newAuth = new UsernamePasswordAuthenticationToken(
-//                    updatedUser.getUsername(),
-//                    updatedUser.getPassword(),
-//                    currentAuth.getAuthorities()
-//            );
-//            SecurityContextHolder.getContext().setAuthentication(newAuth);
-//            final String token = jwtUtil.generateToken(mapper.toDTO(updatedUser, generateImageUrl(updatedUser)));
-//
-//            return ResponseEntity.ok(LoginResponse.builder()
-//                    .message("User updated successfully")
-//                    .token(token)
-//                    .result(mapper.toDTO(updatedUser, generateImageUrl(updatedUser)))
-//                    .build());
-//        }
-//
-//        return ResponseEntity.ok(MessageResponse.builder()
-//                .message("User updated successfully!")
-//                .timestamp(Instant.now())
-//                .build());
-//    }
-
     public User getUserEntityById(UUID id) {
-        return repository.findById(id).orElseThrow(() -> new NoSuchElementException("user not found"));
+        return repository.findById(id).orElseThrow(() -> UserException.notFound(id));
     }
 
     public String getUsernameById(UUID id) {
         return repository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("user not found")).getUsername();
+                .orElseThrow(() -> UserException.notFound(id)).getUsername();
     }
 
     public UUID getUserIdByUsername(String username) {
         return repository.findUserByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("user not found")).getId();
+                .orElseThrow(() -> UserException.notFound(username)).getId();
     }
 
     public User getUserEntityByUsername(String username) {
         return repository.findUserByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("user not found"));
+                .orElseThrow(() -> UserException.notFound(username));
     }
 
     @Transactional
-    public ResponseEntity<MessageResponse> updateUserImage(
+    public MessageResponse updateUserImage(
             final String username,
             final MultipartFile imageFile) {
-        try {
-            User user = getUserEntityByUsername(username);
-            if (imageFile == null || imageFile.isEmpty()) {
-                throw new IllegalArgumentException("File cannot be empty");
-            }
-
-            if (user.getImage() != null) {
-                try {
-                    log.warn("old file deleted : {}", user.getImage());
-                    s3Service.deleteFile(user.getImage());
-                } catch (Exception e) {
-                    log.warn("Failed to delete old image: {}", e.getMessage());
-                }
-            }
-
-            String extension = FilenameUtils.getExtension(imageFile.getOriginalFilename());
-            String imageKey = String.format("users/%s/profile-%d.%s",
-                    username, System.currentTimeMillis(), extension);
-
-            s3Service.uploadFile(imageFile, imageKey);
-
-            user.setImage(imageKey);
-            repository.saveAndFlush(user);
-
-            User updatedUser = repository.findUserByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found after update"));
-            log.info("Updated user image key: {}", updatedUser.getImage());
-
-            return ResponseEntity.ok(MessageResponse.builder()
-                    .message("Image updated successfully")
-                    .timestamp(Instant.now())
-                    .build());
-        } catch (Exception e) {
-            log.error("Image update failed", e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Image update failed", e);
+        User user = getUserEntityByUsername(username);
+        if (imageFile == null || imageFile.isEmpty()) {
+            throw new IllegalArgumentException("File cannot be empty");
         }
+
+        if (user.getImage() != null) {
+            try {
+                log.warn("old file deleted : {}", user.getImage());
+                s3Service.deleteFile(user.getImage());
+            } catch (Exception e) {
+                log.warn("Failed to delete old image: {}", e.getMessage());
+            }
+        }
+
+        String extension = FilenameUtils.getExtension(imageFile.getOriginalFilename());
+        String imageKey = String.format("users/%s/profile-%d.%s",
+                username, System.currentTimeMillis(), extension);
+
+        s3Service.uploadFile(imageFile, imageKey);
+
+        user.setImage(imageKey);
+        repository.saveAndFlush(user);
+
+        User updatedUser = repository.findUserByUsername(username)
+                .orElseThrow(() -> UserException.notFound(username));
+        log.info("Updated user image key: {}", updatedUser.getImage());
+
+        return MessageResponse.builder()
+                .message("Image updated successfully")
+                .timestamp(Instant.now())
+                .build();
     }
 
     public UserDTO getUserWithImageUrl(String username) {
         User user = getUserEntityByUsername(username);
-        UserDTO dto = mapper.toDTO(user);
-
-        if (user.getImage() != null && !user.getImage().isEmpty()) {
-            dto.setImage(s3Service.generatePresignedUrl(user.getImage()));
-        }
-
-        return dto;
+        String imageUrl = (user.getImage() != null && !user.getImage().isEmpty())
+                ? s3Service.generatePresignedUrl(user.getImage())
+                : null;
+        return mapper.toDTO(user, imageUrl);
     }
 
     public String generateImageUrl(User user) {
         return s3Service.generatePresignedUrl(user.getImage());
     }
-
 }

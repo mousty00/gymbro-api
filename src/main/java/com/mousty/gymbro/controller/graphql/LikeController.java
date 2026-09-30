@@ -12,13 +12,15 @@ import com.netflix.graphql.dgs.InputArgument;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
+import com.mousty.gymbro.generic.PageableDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
+import com.mousty.gymbro.security.CurrentUsername;
 
 import java.util.UUID;
 
 @DgsComponent
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class LikeController {
 
     private final LikeService service;
@@ -27,10 +29,7 @@ public class LikeController {
     public Connection<LikeDTO> likes(
             @InputArgument @Nullable Integer page,
             @InputArgument @Nullable Integer size){
-        return service.getAllLikes(PageRequest.of(
-                page != null ? page : 0,
-                size != null ? size : 15
-        ));
+        return service.getAllLikes(PageableDefaults.INSTANCE.create(page, size));
     }
 
     @DgsQuery
@@ -41,7 +40,7 @@ public class LikeController {
     @DgsMutation
     public MessageResponse deleteLike(
             @InputArgument UUID id,
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username){
         return service.deleteLikeById(id, username);
     }
@@ -49,7 +48,7 @@ public class LikeController {
     @DgsMutation
     public LikeDTO createLike(
             @Valid @InputArgument LikeInput request,
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username) {
         return service.createLike(request, username);
     }

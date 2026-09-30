@@ -38,11 +38,7 @@ database.env
 app.env
 .env
 *.env
-
-### Docker ###
-Dockerfile
-docker-compose.yml
-docker-compose.*.yml
+!.env.*.example
 
 *.jar
 *.war

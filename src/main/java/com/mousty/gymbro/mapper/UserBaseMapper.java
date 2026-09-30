@@ -9,6 +9,5 @@ public interface UserBaseMapper extends GenericMapper<User, UserDTO> {
 
     UserDTO toDTO(User user, String imageUrl);
     User toEntity(UserDTO dto);
-    //User toNewEntity(UserDTO dto);
-    User fromSignupDTO(SignupDTO dto);
+    User fromSignupDTO(SignupDTO dto, String image);
 }

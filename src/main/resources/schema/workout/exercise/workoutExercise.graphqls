@@ -1,3 +1,14 @@
+extend type Query {
+    workoutExercises(page: Int, size: Int): WorkoutExerciseConnection
+    workoutExercise(id: UUID): WorkoutExerciseDTO
+}
+
+extend type Mutation {
+    createWorkoutExercise(request: WorkoutExerciseInput): WorkoutExerciseEntityResponse
+    updateWorkoutExercise(request: WorkoutExerciseInput): MessageResponse
+    deleteWorkoutExercise(id: UUID): MessageResponse
+}
+
 type WorkoutExerciseDTO {
     id: UUID
     workoutId: UUID
@@ -8,4 +19,27 @@ type WorkoutExerciseDTO {
     weight: Int
     restSeconds: Int
     position: Int
+}
+
+input WorkoutExerciseInput {
+    id: UUID
+    workoutId: UUID!
+    exerciseId: UUID!
+    sets: Int
+    reps: Int
+    weight: Int
+    restSeconds: Int
+    position: Int
+}
+
+type WorkoutExerciseConnection implements Connection {
+    pageInfo: PageInfo!
+    totalCount: Int!
+    results: [WorkoutExerciseDTO]
+}
+
+type WorkoutExerciseEntityResponse implements EntityResponse {
+    message: String
+    timestamp: String
+    result: WorkoutExerciseDTO
 }

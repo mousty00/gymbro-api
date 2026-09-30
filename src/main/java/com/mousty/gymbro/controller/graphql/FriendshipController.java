@@ -14,13 +14,15 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
+import com.mousty.gymbro.generic.PageableDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
+import com.mousty.gymbro.security.CurrentUsername;
 import java.util.List;
 import java.util.UUID;
 
 @DgsComponent
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class FriendshipController {
 
     private final FriendshipService service;
@@ -29,18 +31,15 @@ public class FriendshipController {
     public Connection<FriendshipDTO> friends(
             @InputArgument @Nullable Integer page,
             @InputArgument @Nullable Integer size,
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username
     ){
-        return  service.getAllFriendships(PageRequest.of(
-                page != null ? page : 0,
-                size != null ? size : 15
-        ), username);
+        return  service.getAllFriendships(PageableDefaults.INSTANCE.create(page, size), username);
     }
 
     @DgsQuery
     public List<PostDTO> friendsPosts(
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username
     ){
         return service.getAllFriendsPosts(username);
@@ -52,14 +51,19 @@ public class FriendshipController {
     }
 
     @DgsQuery
-    public FriendshipDTO friend(@InputArgument UUID id){
-        return service.getFriendshipById(id);
+    public FriendshipDTO friend(@InputArgument UUID id, @CurrentUsername String username){
+        return service.getFriendshipById(id, username);
+    }
+
+    @DgsQuery
+    public List<FriendshipDTO> friendRequests(@CurrentUsername String username){
+        return service.getPendingRequests(username);
     }
 
     @DgsMutation
     public MessageResponse addFriend(
             @Valid @NotBlank final String friendUsername,
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username
     ){
         return service.addFriend(friendUsername, username);
@@ -68,7 +72,7 @@ public class FriendshipController {
     @DgsMutation
     public MessageResponse acceptFriend(
             @Valid @NotNull UUID id,
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username
     ){
         return service.acceptFriend(id, username);
@@ -77,7 +81,7 @@ public class FriendshipController {
     @DgsMutation
     public MessageResponse rejectFriend(
             @Valid @NotNull UUID id,
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username
     ){
         return service.rejectFriend(id, username);
@@ -86,7 +90,7 @@ public class FriendshipController {
     @DgsMutation
     public MessageResponse blockFriend(
             @Valid @NotNull UUID id,
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username
     ){
         return service.blockFriend(id, username);

@@ -1,8 +1,10 @@
 extend type Query {
     friends(page: Int, size: Int): FriendshipConnection
-    friendsPosts: [FriendshipDTO]
+    friendsPosts: [PostDTO]
     findFriends(username: String!): [FriendshipDTO]
     friend(id: UUID!): FriendshipDTO
+    # pending requests received by the caller
+    friendRequests: [FriendshipDTO]
 }
 
 extend type Mutation {
@@ -12,7 +14,7 @@ extend type Mutation {
     blockFriend(id: UUID!): MessageResponse
 }
 
-type FriendshipConnection implements Connection{
+type FriendshipConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     results: [FriendshipDTO]

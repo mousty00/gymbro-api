@@ -16,13 +16,15 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import com.mousty.gymbro.generic.PageableDefaults;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.UUID;
 
 @DgsComponent
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class WorkoutHistoryController {
 
     private final WorkoutHistoryService service;
@@ -33,10 +35,7 @@ public class WorkoutHistoryController {
             @InputArgument @Nullable Integer page,
             @InputArgument @Nullable Integer size
     ) {
-        Pageable pageable = PageRequest.of(
-                page != null ? page : 0,
-                size != null ? size : 15
-        );
+        Pageable pageable = PageableDefaults.INSTANCE.create(page, size);
         return service.getUserWorkoutHistories(authService.getCurrentUsername(), pageable);
     }
 
@@ -47,14 +46,14 @@ public class WorkoutHistoryController {
             @InputArgument @Nullable Integer size
     ) {
         Pageable pageable = PageableDefaults.INSTANCE.create(page, size);
-        return service.getGroupWorkoutHistories(groupId, pageable);
+        return service.getGroupWorkoutHistories(groupId, pageable, authService.getCurrentUsername());
     }
 
     @DgsQuery
     public WorkoutHistoryDTO workoutHistory(
             @InputArgument @NotNull @Valid UUID id
     ) {
-        return service.getWorkoutHistoryById(id);
+        return service.getWorkoutHistoryById(id, authService.getCurrentUsername());
     }
 
     @DgsMutation

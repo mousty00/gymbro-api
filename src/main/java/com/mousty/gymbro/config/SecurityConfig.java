@@ -2,7 +2,9 @@ package com.mousty.gymbro.config;
 
 import com.mousty.gymbro.security.custom.CustomAuthenticationEntryPoint;
 import com.mousty.gymbro.security.jwt.JwtFilter;
+import com.mousty.gymbro.security.ratelimit.AuthRateLimitFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +28,7 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CorsConfig configuration;
     private final JwtFilter jwtFilter;
+    private final AuthRateLimitFilter authRateLimitFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -33,6 +36,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(configuration.configuration()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(EndpointRequest.to("health", "info")).permitAll()
+                        .requestMatchers("/auth/profile").authenticated()
                         .requestMatchers(
                                 "/auth/**",
                                 "/graphql/**",
@@ -50,6 +55,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .addFilterBefore(authRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

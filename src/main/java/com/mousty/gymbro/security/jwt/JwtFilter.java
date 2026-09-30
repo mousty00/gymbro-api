@@ -64,7 +64,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         } catch (Exception e) {
-            logger.error("Could not set user authentication in security context", e);
+            // bad/expired token or deleted user: continue unauthenticated; client input, not a server error
+            logger.debug("Could not set user authentication in security context: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);

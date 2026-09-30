@@ -55,7 +55,6 @@ public class Workout {
     @Column(name = "start_time")
     private LocalTime startTime;
 
-    @NotNull
     @ColumnDefault("now()")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @CreationTimestamp

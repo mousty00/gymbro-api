@@ -70,8 +70,8 @@ public abstract class PostMapper {
 
     @Mapping(target = "id", source = "dto.id")
     @Mapping(target = "user", source = "user")
-    @Mapping(target = "likes", expression = "java(mapSimpleLikeDTOsToPostLikes(dto.getLikes(), user))")
-    @Mapping(target = "comments", expression = "java(mapSimpleCommentDTOsToPostComments(dto.getComments(), user))")
+    @Mapping(target = "likes", expression = "java(mapSimpleLikeDTOsToPostLikes(dto.likes(), user))")
+    @Mapping(target = "comments", expression = "java(mapSimpleCommentDTOsToPostComments(dto.comments(), user))")
     @Mapping(target = "content", source = "dto.content")
     @Mapping(target = "createdAt", source = "dto.createdAt")
     @Mapping(target = "updatedAt", source = "dto.updatedAt")

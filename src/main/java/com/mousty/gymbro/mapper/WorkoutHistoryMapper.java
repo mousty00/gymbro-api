@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class WorkoutHistoryMapper implements GenericMapper<WorkoutHistory, WorkoutHistoryDTO> {
-    
+
     private final UserService userService;
     private final WorkoutService workoutService;
     private final WorkoutGroupService workoutGroupService;
@@ -32,26 +32,36 @@ public class WorkoutHistoryMapper implements GenericMapper<WorkoutHistory, Worko
     }
 
     @Override
-    public WorkoutHistory toEntity(final WorkoutHistoryDTO workoutHistoryDTO) {
-        return null;
+    public WorkoutHistory toEntity(final WorkoutHistoryDTO dto) {
+        WorkoutHistory entity = new WorkoutHistory();
+        entity.setId(dto.id());
+        entity.setUser(userService.getUserEntityById(dto.userId()));
+        entity.setWorkout(workoutService.getUserWorkoutEntityById(dto.workoutId()));
+        if (dto.groupId() != null) {
+            entity.setGroup(workoutGroupService.getWorkoutGroupEntityById(dto.groupId()));
+        }
+        entity.setStartedAt(dto.startedAt());
+        entity.setCompletedAt(dto.completedAt());
+        entity.setNotes(dto.notes());
+        return entity;
     }
 
     public WorkoutHistory toNewEntity(WorkoutHistoryInput input, String username) {
         WorkoutHistory entity = new WorkoutHistory();
         entity.setUser(userService.getUserEntityByUsername(username));
-        entity.setWorkout(workoutService.getUserWorkoutEntityById(input.getWorkoutId()));
-        if (input.getGroupId() != null) {
-            entity.setGroup(workoutGroupService.getWorkoutGroupEntityById(input.getGroupId()));
+        entity.setWorkout(workoutService.getUserWorkoutEntityById(input.workoutId()));
+        if (input.groupId() != null) {
+            entity.setGroup(workoutGroupService.getWorkoutGroupEntityById(input.groupId()));
         }
-        entity.setStartedAt(input.getStartedAt());
-        entity.setCompletedAt(input.getCompletedAt());
-        entity.setNotes(input.getNotes());
+        entity.setStartedAt(input.startedAt());
+        entity.setCompletedAt(input.completedAt());
+        entity.setNotes(input.notes());
         return entity;
     }
 
     public WorkoutHistory toUpdateEntity(WorkoutHistoryInput input, WorkoutHistory entity) {
-        entity.setCompletedAt(input.getCompletedAt());
-        entity.setNotes(input.getNotes());
+        entity.setCompletedAt(input.completedAt());
+        entity.setNotes(input.notes());
         return entity;
     }
 }

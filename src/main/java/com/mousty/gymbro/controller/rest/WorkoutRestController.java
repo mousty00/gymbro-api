@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
+import com.mousty.gymbro.security.CurrentUsername;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,15 +33,16 @@ public class WorkoutRestController {
     @GetMapping
     public Connection<WorkoutDTO> getAllWorkouts(
             @Parameter(description = "Pagination parameters")
-            @PageableDefault Pageable pageable) {
-        return workoutService.getAllWorkouts(pageable);
+            @PageableDefault Pageable pageable,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return workoutService.getAllWorkouts(pageable, username);
     }
 
     @Operation(summary = "Get all workout by logged user", description = "Returns a paginated list of all workouts")
     @GetMapping("/profile")
     public List<WorkoutDTO> getWorkouts(
             @Parameter(hidden = true)
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username) {
         return workoutService.getWorkouts(username);
     }
@@ -50,24 +51,27 @@ public class WorkoutRestController {
     @GetMapping("/{id}")
     public WorkoutDTO getWorkoutById(
             @Parameter(description = "Workout UUID")
-            @PathVariable UUID id) {
-        return workoutService.getWorkoutById(id);
+            @PathVariable UUID id,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return workoutService.getWorkoutById(id, username);
     }
 
     @Operation(summary = "Delete workout", description = "Deletes a workout by its UUID")
     @DeleteMapping("delete/{id}")
     public MessageResponse deleteWorkoutById(
             @Parameter(description = "Workout UUID")
-            @PathVariable UUID id) {
-        return workoutService.deleteWorkoutById(id);
+            @PathVariable UUID id,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return workoutService.deleteWorkoutById(id, username);
     }
 
     @Operation(summary = "Update workout", description = "Updates an existing workout's information")
     @PutMapping("/update")
     public MessageResponse updateWorkoutById(
             @Parameter(description = "Updated workout information")
-            @Valid @RequestBody WorkoutInput request) {
-        return workoutService.updateWorkout(request);
+            @Valid @RequestBody WorkoutInput request,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return workoutService.updateWorkout(request, username);
     }
 
     @Operation(summary = "Create workout", description = "Creates a new workout")
@@ -76,7 +80,8 @@ public class WorkoutRestController {
     @PostMapping("/create")
     public EntityResponse<WorkoutDTO> createWorkout(
             @Parameter(description = "New workout information")
-            @Valid @RequestBody WorkoutInput request) {
-        return workoutService.createWorkout(request);
+            @Valid @RequestBody WorkoutInput request,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return workoutService.createWorkout(request, username);
     }
 }

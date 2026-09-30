@@ -6,6 +6,7 @@ import com.mousty.gymbro.dto.user.SimpleUserDTO;
 import com.mousty.gymbro.dto.user.UserDTO;
 import com.mousty.gymbro.pagination.Connection;
 import com.mousty.gymbro.response.MessageResponse;
+import com.mousty.gymbro.security.CurrentUsername;
 import com.netflix.graphql.dgs.DgsComponent;
 import com.netflix.graphql.dgs.DgsMutation;
 import com.netflix.graphql.dgs.DgsQuery;
@@ -13,12 +14,14 @@ import com.netflix.graphql.dgs.InputArgument;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.UUID;
 
 @DgsComponent
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class UserController {
 
     private final UserService service;
@@ -45,8 +48,8 @@ public class UserController {
     }
 
     @DgsMutation
-    public MessageResponse deleteUser(@InputArgument UUID id) {
-        return service.deleteUserById(id);
+    public MessageResponse deleteUser(@CurrentUsername String username) {
+        return service.deleteCurrentUser(username);
     }
 
 }

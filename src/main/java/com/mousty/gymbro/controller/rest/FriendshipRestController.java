@@ -6,6 +6,7 @@ import com.mousty.gymbro.dto.post.PostDTO;
 import com.mousty.gymbro.pagination.Connection;
 import com.mousty.gymbro.response.MessageResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -15,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
+import com.mousty.gymbro.security.CurrentUsername;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public class FriendshipRestController {
     @GetMapping
     public Connection<FriendshipDTO> getAllFriendships(
             @PageableDefault Pageable pageable,
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username) {
         return service.getAllFriendships(pageable, username);
     }
@@ -42,10 +43,16 @@ public class FriendshipRestController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved user posts")
     @GetMapping("/posts")
     public List<PostDTO> getAllFriendsPosts(
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username
     ) {
         return service.getAllFriendsPosts(username);
+    }
+
+    @Operation(summary = "Incoming friend requests", description = "Pending requests received by the current user")
+    @GetMapping("/requests")
+    public List<FriendshipDTO> getPendingRequests(@Parameter(hidden = true) @CurrentUsername String username) {
+        return service.getPendingRequests(username);
     }
 
     @Operation(summary = "Search friends by username", description = "Returns a list of friendships matching the username")
@@ -56,8 +63,10 @@ public class FriendshipRestController {
 
     @Operation(summary = "Get friendship by ID", description = "Returns a friendship by its ID")
     @GetMapping("/{id}")
-    public FriendshipDTO getFriendshipById(@PathVariable @Valid @NotNull UUID id) {
-        return service.getFriendshipById(id);
+    public FriendshipDTO getFriendshipById(
+            @PathVariable @Valid @NotNull UUID id,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return service.getFriendshipById(id, username);
     }
 
     @Operation(summary = "Create friendship", description = "Creates a new friendship request")
@@ -65,7 +74,7 @@ public class FriendshipRestController {
     @PostMapping("/create")
     public MessageResponse createFriendship(
             @RequestParam @Valid @NotBlank final String friendUsername,
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username) {
         return service.addFriend(friendUsername, username);
     }
@@ -73,7 +82,7 @@ public class FriendshipRestController {
     @Operation(summary = "Accept friendship", description = "Accepts a pending friendship request")
     @GetMapping("/accept/{id}")
     public MessageResponse acceptFriend(@PathVariable @Valid @NotNull UUID id,
-                                                        @CurrentSecurityContext(expression = "authentication?.name")
+                                                        @CurrentUsername
                                                         String username) {
         return service.acceptFriend(id, username);
     }
@@ -81,7 +90,7 @@ public class FriendshipRestController {
     @Operation(summary = "Reject friendship", description = "Rejects a pending friendship request")
     @GetMapping("/reject/{id}")
     public MessageResponse rejectFriend(@PathVariable @Valid @NotNull UUID id,
-                                                        @CurrentSecurityContext(expression = "authentication?.name")
+                                                        @CurrentUsername
                                                         String username) {
         return service.rejectFriend(id, username);
     }
@@ -90,7 +99,7 @@ public class FriendshipRestController {
     @GetMapping("/block/{id}")
     public MessageResponse blockFriend(
             @PathVariable @Valid @NotNull UUID id,
-            @CurrentSecurityContext(expression = "authentication?.name")
+            @CurrentUsername
             String username) {
         return service.blockFriend(id, username);
     }

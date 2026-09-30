@@ -46,21 +46,23 @@ public abstract class WorkoutMapper implements GenericMapper<Workout, WorkoutDTO
     @Mapping(target = "workoutHistories", source = "workoutHistories", qualifiedByName = "mapWorkoutHistoryEntities")
     public abstract Workout toEntity(WorkoutDTO dto);
 
+    // owner is set by the service from the authenticated caller, never from the request
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "user", source = "userId", qualifiedByName = "mapUserFromId")
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "workoutGroups", ignore = true)
     @Mapping(target = "workoutHistories", ignore = true)
     @Mapping(target = "workoutExercises", ignore = true)
     public abstract Workout toNewEntity(WorkoutInput request);
 
     @Mapping(target = "id", source = "workout.id")
-    @Mapping(target = "user", source = "request.userId", qualifiedByName = "mapUserFromId")
+    @Mapping(target = "user", source = "workout.user")
     @Mapping(target = "name", source = "request.name")
     @Mapping(target = "description", source = "request.description")
     @Mapping(target = "isPublic", source = "request.isPublic")
     @Mapping(target = "dayOfWeek", source = "request.dayOfWeek")
     @Mapping(target = "startTime", source = "request.startTime")
-    @Mapping(target = "createdAt", source = "request.createdAt")
+    @Mapping(target = "createdAt", source = "workout.createdAt")
     @Mapping(target = "workoutGroups", source = "workout.workoutGroups")
     @Mapping(target = "workoutHistories", source = "workout.workoutHistories")
     @Mapping(target = "workoutExercises", source = "workout.workoutExercises")

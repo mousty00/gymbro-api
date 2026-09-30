@@ -20,8 +20,8 @@ input LikeInput {
     userId: UUID
 }
 
-type LikeConnection implements Connection{
+type LikeConnection implements Connection {
     pageInfo: PageInfo!
     totalCount: Int!
-    result: [LikeDTO]
+    results: [LikeDTO]
 }

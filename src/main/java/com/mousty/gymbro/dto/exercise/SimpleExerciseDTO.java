@@ -2,35 +2,29 @@ package com.mousty.gymbro.dto.exercise;
 
 import com.mousty.gymbro.dto.user.UserDTO;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class SimpleExerciseDTO {
+@Builder(toBuilder = true)
+public record SimpleExerciseDTO(
     @NotNull
-    private UUID id;
+    UUID id,
 
     @Size(max = 100)
     @NotNull
-    private String name;
+    String name,
 
-    private String description;
+    String description,
 
     @Size(max = 50)
     @NotNull
-    private String muscleGroup;
+    String muscleGroup,
 
     @NotNull
-    private Boolean isPublic = false;
+    Boolean isPublic,
 
     @NotNull
-    private UserDTO createdBy;
-}
+    UserDTO createdBy
+) {}

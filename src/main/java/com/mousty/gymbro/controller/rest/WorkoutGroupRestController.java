@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.CurrentSecurityContext;
+import com.mousty.gymbro.security.CurrentUsername;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -33,8 +33,10 @@ public class WorkoutGroupRestController {
     @Operation(summary = "Get all workout groups", description = "Returns a paginated list of all workout groups")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved workout groups")
     @GetMapping
-    public Connection<WorkoutGroupDTO> getAllWorkoutGroups(@PageableDefault Pageable pageable) {
-        return service.getAllWorkoutGroups(pageable);
+    public Connection<WorkoutGroupDTO> getAllWorkoutGroups(
+            @PageableDefault Pageable pageable,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return service.getAllWorkoutGroups(pageable, username);
     }
 
     @Operation(summary = "Get workout group by ID")
@@ -43,8 +45,10 @@ public class WorkoutGroupRestController {
             @ApiResponse(responseCode = "404", description = "Workout group not found")
     })
     @GetMapping("/{id}")
-    public WorkoutGroupDTO getWorkoutGroupById(@PathVariable @Parameter(description = "Workout group UUID") UUID id) {
-        return service.getWorkoutGroupById(id);
+    public WorkoutGroupDTO getWorkoutGroupById(
+            @PathVariable @Parameter(description = "Workout group UUID") UUID id,
+            @Parameter(hidden = true) @CurrentUsername String username) {
+        return service.getWorkoutGroupById(id, username);
     }
 
     @Operation(summary = "Create new workout group")
@@ -55,8 +59,8 @@ public class WorkoutGroupRestController {
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
     public EntityResponse<WorkoutGroupDTO> createWorkoutGroup(
-            @RequestBody @Parameter(description = "Workout group details") WorkoutGroupInput request,
-            @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication?.name") String username) {
+            @Valid @RequestBody @Parameter(description = "Workout group details") WorkoutGroupInput request,
+            @Parameter(hidden = true) @CurrentUsername String username) {
         return service.createWorkoutGroup(request, username);
     }
 
@@ -69,7 +73,7 @@ public class WorkoutGroupRestController {
     public MessageResponse deleteWorkoutGroup(
             @Valid @NotNull @Parameter(description = "Workout group id")
             @PathVariable UUID id,
-            @Parameter(hidden = true) @CurrentSecurityContext(expression = "authentication?.name") String username
+            @Parameter(hidden = true) @CurrentUsername String username
     ){
         return service.deleteWorkoutGroup(id, username);
     }

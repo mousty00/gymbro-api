@@ -25,7 +25,6 @@ type WorkoutDTO {
 
 input WorkoutInput {
     id: UUID
-    userId: UUID!
     name: String!
     description: String
     isPublic: Boolean!

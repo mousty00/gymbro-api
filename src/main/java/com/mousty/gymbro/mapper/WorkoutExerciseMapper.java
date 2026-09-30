@@ -45,16 +45,16 @@ public interface WorkoutExerciseMapper extends GenericMapper<WorkoutExercise, Wo
 
         User createdBy = null;
         createdBy = User.builder()
-                .id(exerciseDTO.getCreatedBy().getId())
+                .id(exerciseDTO.createdBy().id())
                 .build();
 
         return Exercise.builder()
-                .id(exerciseDTO.getId())
-                .name(exerciseDTO.getName())
-                .description(exerciseDTO.getDescription())
-                .muscleGroup(exerciseDTO.getMuscleGroup())
+                .id(exerciseDTO.id())
+                .name(exerciseDTO.name())
+                .description(exerciseDTO.description())
+                .muscleGroup(exerciseDTO.muscleGroup())
                 .createdBy(createdBy)
-                .isPublic(exerciseDTO.getIsPublic())
+                .isPublic(exerciseDTO.isPublic())
                 .workoutExercises(null)
                 .build();
     }

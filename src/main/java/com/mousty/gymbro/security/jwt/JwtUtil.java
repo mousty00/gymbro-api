@@ -21,9 +21,12 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
     private final SecretKey secretKey;
+    private final long accessTokenExpirationMs;
 
-    public JwtUtil(@Value("${jwt.secret}") final String secret) {
+    public JwtUtil(@Value("${jwt.secret}") final String secret,
+                    @Value("${jwt.access-token-expiration-ms:1800000}") final long accessTokenExpirationMs) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.accessTokenExpirationMs = accessTokenExpirationMs;
     }
 
     /**
@@ -102,10 +105,10 @@ public class JwtUtil {
      */
     public String generateToken(final UserDTO request) {
         final Map<String, Object> claims = new HashMap<>();
-        claims.put("id", request.getId().toString());
-        claims.put("username", request.getUsername());
-        claims.put("email", request.getEmail());
-        return createToken(claims, request.getUsername());
+        claims.put("id", request.id().toString());
+        claims.put("username", request.username());
+        claims.put("email", request.email());
+        return createToken(claims, request.username());
     }
 
     /**
@@ -120,7 +123,7 @@ public class JwtUtil {
                 .claims(claims)
                 .subject(username)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .expiration(new Date(System.currentTimeMillis() + accessTokenExpirationMs))
                 .signWith(secretKey)
                 .compact();
     }

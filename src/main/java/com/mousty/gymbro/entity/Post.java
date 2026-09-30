@@ -40,7 +40,6 @@ public class Post {
     @Column(name = "image_url")
     private String imageUrl;
 
-    @NotNull
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @CreationTimestamp
     @ColumnDefault("now()")

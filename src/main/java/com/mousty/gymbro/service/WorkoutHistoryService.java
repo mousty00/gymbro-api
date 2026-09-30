@@ -1,5 +1,6 @@
 package com.mousty.gymbro.service;
 
+import com.mousty.gymbro.exception.WorkoutHistoryException;
 import com.mousty.gymbro.generic.GenericService;
 import com.mousty.gymbro.entity.WorkoutHistory;
 import com.mousty.gymbro.mapper.WorkoutHistoryMapper;
@@ -17,18 +18,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
 public class WorkoutHistoryService extends GenericService<WorkoutHistory, WorkoutHistoryDTO, WorkoutHistoryMapper, WorkoutHistoryRepository> {
 
-    public WorkoutHistoryService(final WorkoutHistoryMapper mapper, final WorkoutHistoryRepository repository) {
-        super(mapper, repository);
-    }
+    private final WorkoutService workoutService;
+    private final WorkoutGroupService workoutGroupService;
 
-    public Connection<WorkoutHistoryDTO> getAllWorkoutHistories(Pageable pageable) {
-        return getAll(pageable);
+    public WorkoutHistoryService(final WorkoutHistoryMapper mapper, final WorkoutHistoryRepository repository,
+                                 final WorkoutService workoutService, final WorkoutGroupService workoutGroupService) {
+        super(mapper, repository);
+        this.workoutService = workoutService;
+        this.workoutGroupService = workoutGroupService;
     }
 
     public Connection<WorkoutHistoryDTO> getUserWorkoutHistories(String username, Pageable pageable) {
@@ -39,7 +41,8 @@ public class WorkoutHistoryService extends GenericService<WorkoutHistory, Workou
         return new Connection<>(listDTO, info, page.getTotalElements());
     }
 
-    public Connection<WorkoutHistoryDTO> getGroupWorkoutHistories(UUID groupId, Pageable pageable) {
+    public Connection<WorkoutHistoryDTO> getGroupWorkoutHistories(UUID groupId, Pageable pageable, String username) {
+        workoutGroupService.getMemberGroup(groupId, username);
         final Page<WorkoutHistory> page = repository.findAllByGroup_Id(groupId, pageable);
         final List<WorkoutHistoryDTO> listDTO = page.map(mapper::toDTO).toList();
         PageInfo info = new PageInfo(page.hasNext(), page.hasPrevious(),
@@ -47,24 +50,40 @@ public class WorkoutHistoryService extends GenericService<WorkoutHistory, Workou
         return new Connection<>(listDTO, info, page.getTotalElements());
     }
 
-    public WorkoutHistoryDTO getWorkoutHistoryById(UUID id) {
-        return getById(id, "Workout history not found");
+    /** Visible to its owner and, for a group session, to the group's members. */
+    public WorkoutHistoryDTO getWorkoutHistoryById(UUID id, String username) {
+        final WorkoutHistory history = repository.findById(id)
+                .orElseThrow(() -> WorkoutHistoryException.notFound(id));
+        final boolean owner = username != null && history.getUser().getUsername().equals(username);
+        if (!owner && (history.getGroup() == null || !workoutGroupService.isMember(history.getGroup(), username))) {
+            throw WorkoutHistoryException.notFound(id);
+        }
+        return mapper.toDTO(history);
     }
 
     @Transactional
     public MessageResponse deleteWorkoutHistory(UUID id, String username) {
         WorkoutHistory history = repository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Workout history not found"));
+                .orElseThrow(() -> WorkoutHistoryException.notFound(id));
 
         if (!history.getUser().getUsername().equals(username)) {
-            throw new IllegalArgumentException("You cannot delete this workout history");
+            throw WorkoutHistoryException.unauthorized();
         }
 
-        return delete(id, "Workout history not found", "Workout history deleted successfully!");
+        repository.deleteById(id);
+        return MessageResponse.builder()
+                .message("Workout history deleted successfully!")
+                .timestamp(Instant.now())
+                .build();
     }
 
     @Transactional
     public EntityResponse<WorkoutHistoryDTO> createWorkoutHistory(WorkoutHistoryInput input, String username) {
+        // you can log a session of a workout you can see, and only into a group you belong to
+        workoutService.getVisibleWorkout(input.workoutId(), username);
+        if (input.groupId() != null) {
+            workoutGroupService.getMemberGroup(input.groupId(), username);
+        }
         WorkoutHistory history = mapper.toNewEntity(input, username);
         repository.save(history);
         return EntityResponse.<WorkoutHistoryDTO>builder()
@@ -77,10 +96,10 @@ public class WorkoutHistoryService extends GenericService<WorkoutHistory, Workou
     @Transactional
     public MessageResponse updateWorkoutHistory(UUID id, WorkoutHistoryInput input, String username) {
         WorkoutHistory history = repository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Workout history not found"));
+                .orElseThrow(() -> WorkoutHistoryException.notFound(id));
 
         if (!history.getUser().getUsername().equals(username)) {
-            throw new IllegalArgumentException("You cannot update this workout history");
+            throw WorkoutHistoryException.unauthorized();
         }
 
         repository.save(mapper.toUpdateEntity(input, history));

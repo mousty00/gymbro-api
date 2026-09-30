@@ -42,7 +42,6 @@ public class PostComment {
     @Column(name = "content", nullable = false, length = Integer.MAX_VALUE)
     private String content;
 
-    @NotNull
     @CreationTimestamp
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @ColumnDefault("now()")

@@ -1,4 +1,5 @@
 scalar UUID
+scalar Instant
 scalar MultiPartFile
 
 type Query {
