@@ -20,11 +20,12 @@ This API is built using modern, scalable Java technologies and leverages cloud-n
 
 ### Backend
 
-  * **Java Spring Boot:** The foundation of the API, providing rapid development and a robust, production-ready environment.
-  * **Spring Security:** Handles all authentication and authorization within the application.
-  * **JWT (JSON Web Tokens):** Used for secure, stateless token-based authentication.
-  * **Java Mail:** Enables communication functionalities, such as password resets and notification emails.
-  * **Apache Kafka (Introducing):** Being integrated for building real-time data pipelines and streaming features (e.g., real-time feed updates, notifications).
+  * **Java 21 + Spring Boot 3:** The foundation of the API, providing rapid development and a robust, production-ready environment.
+  * **GraphQL (Netflix DGS) + REST:** Full REST API, plus a GraphQL schema for auth, users and social features.
+  * **Spring Security + JWT:** Stateless token-based authentication and authorization.
+  * **PostgreSQL + Flyway:** Relational storage with versioned schema migrations.
+  * **Java Mail:** Email verification and password resets.
+  * **Testcontainers:** Integration tests against a real PostgreSQL instance.
 
 ### Cloud Services
 
@@ -44,37 +45,42 @@ These instructions will get you a copy of the project up and running on your loc
 
 You'll need the following installed:
 
-  * **Java Development Kit (JDK) 21+**
-  * **Maven** 
-  * An **IDE** (IntelliJ)
-  * **AWS Account** (for S3 setup)
-  * **Local Kafka** 
+  * **JDK 21+** (Maven comes bundled as `./mvnw`)
+  * **Docker** (for the local database and the integration tests)
+  * An **AWS S3 bucket** and an **SMTP account** (for uploads and verification emails)
 
-### Installation
+### Run locally
 
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/mousty00/gymbro-api.git
     cd gymbro-api
     ```
-2.  **Configure Environment Variables:**
-      * Create an `application.properties` or `application.yml` file in `src/main/resources`.
-      * Set up configurations for:
-          * **Database connection** (PostgreSQL).
-          * **AWS S3 credentials and bucket name.**
-          * **JWT secret key and expiration time.**
-          * **Java Mail properties.**
-          * **Kafka broker configuration.**
-3.  **Build the project:**
+2.  **Start PostgreSQL:**
     ```bash
-    mvn clean install
+    printf 'POSTGRES_USER=postgres\nPOSTGRES_PASSWORD=postgres\nPOSTGRES_DB=gymbro\n' > database.env
+    docker compose up -d pg-service
     ```
-4.  **Run the application:**
+3.  **Configure the app:** copy the template and fill in the blanks (database, mail, AWS, and a JWT secret from `openssl rand -base64 64`).
     ```bash
-    mvn spring-boot:run
+    cp src/main/resources/application.properties.template src/main/resources/application.properties
     ```
+    `application.properties`, `*.env` and `.env.*` are gitignored — never commit real credentials.
+4.  **Run:**
+    ```bash
+    ./mvnw spring-boot:run
+    ```
+    Flyway creates the schema on first start. The API is served at `http://localhost:8080/api`.
 
-The API will typically start on `http://localhost:8080/api`.
+### Tests
+
+```bash
+./mvnw verify   # needs Docker running: Testcontainers starts its own PostgreSQL
+```
+
+### Deploy
+
+See [DEPLOY_DOKPLOY.md](DEPLOY_DOKPLOY.md) and [.env.prod.example](.env.prod.example) for the production variables.
 
 -----
 
@@ -82,7 +88,8 @@ The API will typically start on `http://localhost:8080/api`.
 
 Once the API is running, you can access the interactive documentation to explore the available endpoints:
 
-  * **Swagger UI:** `http://localhost:8080/api/swagger-ui.html`
+  * **GraphiQL:** `http://localhost:8080/api/graphiql`
+  * **Swagger UI (REST):** `http://localhost:8080/api/swagger-ui.html`
 
 Use this interface to understand how to interact with endpoints for user management, workout tracking, and social features.
 
@@ -91,6 +98,12 @@ Use this interface to understand how to interact with endpoints for user managem
 ## 🤝 Contribution
 
 Contributions are welcome\! Please feel free to open an issue or submit a pull request if you have suggestions or bug fixes.
+
+-----
+
+## 📄 License
+
+Released under the [MIT License](LICENSE).
 
 -----
 
