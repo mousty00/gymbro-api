@@ -25,11 +25,12 @@ input WorkoutExerciseInput {
     id: UUID
     workoutId: UUID!
     exerciseId: UUID!
-    sets: Int
+    # required fields mirror the NOT NULL columns of workout_exercise
+    sets: Int!
     reps: Int
     weight: Int
     restSeconds: Int
-    position: Int
+    position: Int!
 }
 
 type WorkoutExerciseConnection implements Connection {

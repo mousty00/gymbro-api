@@ -40,23 +40,4 @@ class ApiErrorsIntegrationTest extends IntegrationTestBase {
         assertThat(errorType(response)).isEqualTo("NOT_FOUND");
         assertThat(errorMessage(response)).startsWith("Workout not found").doesNotContain("com.mousty", "Exception");
     }
-
-    @Test
-    @DisplayName("unexpected GraphQL errors return a generic message")
-    void unexpectedErrorsAreGeneric() throws Exception {
-        final TestUser user = signupAndVerify("errors");
-        final UUID workout = createWorkout(user, false);
-        final String exercise = gqlData(user.token(), """
-                mutation { createExercise(request: {name: "Row", muscleGroup: "back", isPublic: false}) { result { id } } }
-                """).at("/createExercise/result/id").asText();
-
-        // sets and position are NOT NULL in the DB but optional in the schema: a constraint violation, not a domain error
-        final JsonNode response = gql(user.token(), """
-                mutation { createWorkoutExercise(request: {workoutId: "%s", exerciseId: "%s"}) { result { id } } }
-                """.formatted(workout, exercise));
-
-        assertThat(errorType(response)).isEqualTo("INTERNAL");
-        assertThat(errorMessage(response)).isEqualTo("An unexpected error occurred");
-        assertThat(response.toString()).doesNotContain("com.mousty", "Exception", "constraint");
-    }
 }

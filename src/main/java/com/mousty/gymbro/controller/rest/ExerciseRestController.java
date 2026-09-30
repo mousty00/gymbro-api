@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -74,7 +75,7 @@ public class ExerciseRestController {
     })
     @PutMapping("/update")
     public MessageResponse updateExercise(
-            @Parameter(description = "Exercise details") @Valid @RequestBody ExerciseInput request,
+            @Parameter(description = "Exercise details") @Validated({Put.class, Default.class}) @RequestBody ExerciseInput request,
             @Parameter(hidden = true) @CurrentUsername String username) {
         return exerciseService.updateExercise(request, username);
     }
@@ -88,7 +89,7 @@ public class ExerciseRestController {
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
     public EntityResponse<ExerciseDTO> createExercise(
-            @Parameter(description = "Exercise details") @Validated(value = Put.class) @RequestBody ExerciseInput request,
+            @Parameter(description = "Exercise details") @Valid @RequestBody ExerciseInput request,
             @Parameter(hidden = true) @CurrentUsername
             String username) {
         return exerciseService.createExercise(request, username);

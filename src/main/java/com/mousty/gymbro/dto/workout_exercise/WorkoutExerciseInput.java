@@ -19,12 +19,10 @@ public record WorkoutExerciseInput(
     @NotNull
     Integer sets,
 
-    @NotNull
     Integer reps,
 
     BigDecimal weight,
 
-    @NotNull
     Integer restSeconds,
 
     @NotNull
