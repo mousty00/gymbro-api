@@ -1,5 +1,6 @@
 package com.mousty.gymbro.service;
 
+import org.springframework.transaction.annotation.Transactional;
 import com.mousty.gymbro.entity.Friendship;
 import com.mousty.gymbro.exception.FriendshipException;
 import com.mousty.gymbro.generic.GenericService;
@@ -21,6 +22,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@Transactional(readOnly = true)
 @Service
 public class FriendshipService extends GenericService<Friendship, FriendshipDTO, FriendshipMapper, FriendshipRepository> {
 
@@ -75,6 +77,7 @@ public class FriendshipService extends GenericService<Friendship, FriendshipDTO,
                 .stream().map(mapper::toDTO).toList();
     }
 
+    @Transactional
     public MessageResponse addFriend(final String friendUsername, String username) {
         if (friendUsername.equals(username)) {
             throw FriendshipException.cannotBefriendSelf();
@@ -90,6 +93,7 @@ public class FriendshipService extends GenericService<Friendship, FriendshipDTO,
                         .build();
     }
 
+    @Transactional
     public MessageResponse acceptFriend(UUID id, String username) {
         final Friendship friendship = getFriendshipForRecipient(id, username);
         friendship.setStatus("accepted");
@@ -100,6 +104,7 @@ public class FriendshipService extends GenericService<Friendship, FriendshipDTO,
                 .build();
     }
 
+    @Transactional
     public MessageResponse rejectFriend(UUID id, String username) {
         final Friendship friendship = getFriendshipForRecipient(id, username);
         repository.delete(friendship);
@@ -109,6 +114,7 @@ public class FriendshipService extends GenericService<Friendship, FriendshipDTO,
                 .build();
     }
 
+    @Transactional
     public MessageResponse blockFriend(UUID id, String username) {
         final Friendship friendship = getFriendshipEntityById(id);
         // either side of the friendship may block

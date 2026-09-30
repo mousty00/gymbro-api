@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@Transactional(readOnly = true)
 @Service
 public class GroupMemberService extends GenericService<GroupMember, GroupMemberDTO, GroupMemberMapper, GroupMemberRepository> {
 
@@ -82,6 +83,7 @@ public class GroupMemberService extends GenericService<GroupMember, GroupMemberD
                 .build();
     }
 
+    @Transactional
     public EntityResponse<GroupMemberDTO> createGroupMember(GroupMemberInput request, String username) {
         // only the group's creator can invite
         final WorkoutGroup group = workoutGroupService.getWorkoutGroupEntityById(request.groupId());
@@ -100,6 +102,7 @@ public class GroupMemberService extends GenericService<GroupMember, GroupMemberD
                 .build();
     }
 
+    @Transactional
     public MessageResponse acceptGroupMemberInvitation(UUID id, String username) {
         final GroupMember groupMember = getPendingInvitation(id, username, "User not authorized to accept this invitation");
         groupMember.setStatus("accepted");

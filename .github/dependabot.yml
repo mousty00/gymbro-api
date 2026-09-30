@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # Boot-managed libraries move together with the parent; one PR instead of dozens
+      spring:
+        patterns: ["org.springframework*", "com.netflix.graphql.dgs*"]
+    ignore:
+      # major upgrades (e.g. Spring Boot 4) need a manual migration
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

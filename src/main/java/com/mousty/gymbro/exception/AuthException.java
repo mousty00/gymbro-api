@@ -16,6 +16,10 @@ public class AuthException extends GymBroException {
         return new AuthException("OTP has expired", HttpStatus.BAD_REQUEST);
     }
 
+    public static AuthException emailNotVerified() {
+        return new AuthException("Email not verified: check your inbox for the verification code", HttpStatus.FORBIDDEN);
+    }
+
     public static AuthException alreadyVerified() {
         return new AuthException("User is already verified", HttpStatus.BAD_REQUEST);
     }

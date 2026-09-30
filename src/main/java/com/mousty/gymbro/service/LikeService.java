@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.UUID;
 
+@Transactional(readOnly = true)
 @Service
 public class LikeService extends GenericService<PostLike, LikeDTO, LikeMapper, LikeRepository> {
 
@@ -55,6 +56,7 @@ public class LikeService extends GenericService<PostLike, LikeDTO, LikeMapper, L
                 .orElseThrow(() -> LikeException.notFound(id));
     }
 
+    @Transactional
     public LikeDTO createLike(LikeInput request, String username) {
         authService.checkAuthorization(request.userId(), username, "User not authorized to create like");
         final User user = userService.getUserEntityById(request.userId());

@@ -53,6 +53,7 @@ import static org.assertj.core.api.Assertions.within;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -114,8 +115,10 @@ class AuthServiceTest {
 
     /** Runs sendOtp and returns the plain OTP that was emailed. */
     private String issueVerifyOtp() {
-        when(userRepository.findUserByUsername(USERNAME)).thenReturn(Optional.of(user));
-        authService.sendOtp(USERNAME);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        // verifyOtp looks the user up by username; not every caller of this helper verifies
+        lenient().when(userRepository.findUserByUsername(USERNAME)).thenReturn(Optional.of(user));
+        authService.sendOtp(EMAIL);
         ArgumentCaptor<String> otp = ArgumentCaptor.forClass(String.class);
         verify(emailService).sendOtpEmail(eq(EMAIL), eq("Mousty"), otp.capture());
         return otp.getValue();
@@ -130,6 +133,7 @@ class AuthServiceTest {
         @Test
         @DisplayName("success resets the lockout counters and returns access + refresh tokens")
         void success() {
+            user.setIsAccountVerified(true);
             user.setFailedLoginAttempts(3);
             user.setLoginLockedUntil(now() - 1000);
             Authentication auth = new UsernamePasswordAuthenticationToken(USERNAME, null, List.of());
@@ -149,6 +153,33 @@ class AuthServiceTest {
             assertThat(user.getLoginLockedUntil()).isNull();
             verify(userRepository).save(user);
             assertThat(SecurityContextHolder.getContext().getAuthentication()).isSameAs(auth);
+        }
+
+        @Test
+        @DisplayName("correct password but unverified email: 403, no tokens issued")
+        void unverifiedEmail() {
+            user.setIsAccountVerified(false);
+            when(userRepository.findUserByUsername(USERNAME)).thenReturn(Optional.of(user));
+            when(authenticationManager.authenticate(any()))
+                    .thenReturn(new UsernamePasswordAuthenticationToken(USERNAME, null, List.of()));
+
+            assertThatThrownBy(() -> authService.login(request))
+                    .isInstanceOf(AuthException.class)
+                    .extracting(e -> ((AuthException) e).getStatus())
+                    .isEqualTo(HttpStatus.FORBIDDEN);
+            verifyNoInteractions(refreshTokenService, jwtUtil);
+        }
+
+        @Test
+        @DisplayName("unverified email is only revealed after a correct password: wrong password still gives the generic error")
+        void unverifiedWrongPassword() {
+            user.setIsAccountVerified(false);
+            when(userRepository.findUserByUsername(USERNAME)).thenReturn(Optional.of(user));
+            when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("x"));
+
+            assertThatThrownBy(() -> authService.login(request))
+                    .isInstanceOf(BadCredentialsException.class)
+                    .hasMessage("Invalid username or password");
         }
 
         @Test
@@ -268,7 +299,7 @@ class AuthServiceTest {
             SignupDTO request = SignupDTO.builder()
                     .username(USERNAME).email(EMAIL).password("password1").firstName("Mousty")
                     .birthDate(LocalDate.of(1995, 1, 1)).build();
-            when(userRepository.findUserByUsername(USERNAME)).thenReturn(Optional.of(user));
+            when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
             MessageResponse response = authService.signup(request);
 
@@ -296,6 +327,7 @@ class AuthServiceTest {
         @Test
         @DisplayName("revokes the old refresh token then issues a new pair")
         void success() {
+            user.setIsAccountVerified(true);
             UserDTO userDTO = dto();
             when(refreshTokenService.validateAndRevoke("old")).thenReturn(user);
             when(userService.getUserByUsername(USERNAME)).thenReturn(userDTO);
@@ -309,6 +341,20 @@ class AuthServiceTest {
             var inOrder = org.mockito.Mockito.inOrder(refreshTokenService);
             inOrder.verify(refreshTokenService).validateAndRevoke("old");
             inOrder.verify(refreshTokenService).issue(user);
+        }
+
+        @Test
+        @DisplayName("unverified account can't refresh: 403, no new tokens")
+        void unverified() {
+            user.setIsAccountVerified(false);
+            when(refreshTokenService.validateAndRevoke("old")).thenReturn(user);
+
+            assertThatThrownBy(() -> authService.refresh(new RefreshTokenRequest("old")))
+                    .isInstanceOf(AuthException.class)
+                    .extracting(e -> ((AuthException) e).getStatus())
+                    .isEqualTo(HttpStatus.FORBIDDEN);
+            verify(refreshTokenService, never()).issue(any());
+            verifyNoInteractions(jwtUtil);
         }
 
         @Test
@@ -525,24 +571,26 @@ class AuthServiceTest {
         }
 
         @Test
-        @DisplayName("already verified account throws alreadyVerified and sends nothing")
+        @DisplayName("already verified account: same generic response, nothing sent or saved")
         void alreadyVerified() {
             user.setIsAccountVerified(true);
-            when(userRepository.findUserByUsername(USERNAME)).thenReturn(Optional.of(user));
+            when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
-            assertThatThrownBy(() -> authService.sendOtp(USERNAME))
-                    .isInstanceOf(AuthException.class)
-                    .hasMessage("User is already verified");
+            MessageResponse response = authService.sendOtp(EMAIL);
+
+            assertThat(response.message()).startsWith("If the account exists");
             verifyNoInteractions(emailService);
+            verify(userRepository, never()).save(any());
         }
 
         @Test
-        @DisplayName("unknown user throws UsernameNotFoundException")
-        void unknownUser() {
-            when(userRepository.findUserByUsername(USERNAME)).thenReturn(Optional.empty());
+        @DisplayName("unknown email: same generic response (no enumeration), nothing sent")
+        void unknownEmail() {
+            when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> authService.sendOtp(USERNAME))
-                    .isInstanceOf(UsernameNotFoundException.class);
+            MessageResponse response = authService.sendOtp("ghost@example.com");
+
+            assertThat(response.message()).startsWith("If the account exists");
             verifyNoInteractions(emailService);
         }
     }

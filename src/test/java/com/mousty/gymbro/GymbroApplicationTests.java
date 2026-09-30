@@ -1,10 +1,9 @@
 package com.mousty.gymbro;
 
+import com.mousty.gymbro.it.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class GymbroApplicationTests {
+class GymbroApplicationTests extends IntegrationTestBase {
 
     @Test
     void contextLoads() {

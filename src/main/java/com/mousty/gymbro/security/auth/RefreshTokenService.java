@@ -5,7 +5,9 @@ import com.mousty.gymbro.entity.User;
 import com.mousty.gymbro.exception.AuthException;
 import com.mousty.gymbro.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ import java.util.Base64;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RefreshTokenService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -76,5 +79,13 @@ public class RefreshTokenService {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 algorithm not available", e);
         }
+    }
+
+    /** Nightly cleanup: expired and revoked tokens otherwise pile up forever (one row per login/refresh). */
+    @Scheduled(cron = "0 0 3 * * *")
+    @Transactional
+    public void purgeExpiredAndRevoked() {
+        int deleted = refreshTokenRepository.deleteExpiredOrRevoked(Instant.now());
+        log.info("Purged {} expired/revoked refresh tokens", deleted);
     }
 }

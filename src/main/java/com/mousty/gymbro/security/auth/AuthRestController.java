@@ -52,7 +52,7 @@ public class AuthRestController {
     }
 
     @PostMapping("/send-otp")
-    public MessageResponse sendVerifyOtp(String email) {
+    public MessageResponse sendVerifyOtp(@RequestParam String email) {
         return authService.sendOtp(email);
     }
 
