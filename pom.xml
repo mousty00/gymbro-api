@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.5</version>
+        <version>3.5.16</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.mousty</groupId>
@@ -28,7 +28,7 @@
     </scm>
     <properties>
         <java.version>21</java.version>
-        <netflix-dgs.version>10.1.2</netflix-dgs.version>
+        <netflix-dgs.version>10.6.0</netflix-dgs.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
         <!-- Boot 3.4's Byte Buddy can't instrument classes on JDK 25+, so Mockito fails locally;
              1.17.x supports it and stays compatible with the Mockito Boot ships -->
